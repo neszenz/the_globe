@@ -11,9 +11,6 @@ public:
     Shader(const char *name, const char *vertexPath, const char *fragmentPath);
     ~Shader();
 
-    bool Create();
-    void Destroy();
-
     void Bind();
     void Unbind();
 
@@ -36,6 +33,4 @@ private:
 
     std::string m_Name;
     const char *m_VertexPath, *m_FragmentPath;
-
-    unsigned int CreateShader(const char *name, const char *source, unsigned int type);
 };

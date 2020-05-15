@@ -4,7 +4,11 @@
 #include "gl_utils.h"
 #include "icu.hpp" // glfw_key_callback
 
+#include <sstream>
+#include <string>
 #include <stdio.h>
+
+#define PRINT_VERSIONS true
 
 void error_callback(int error, const char* description)
 {
@@ -27,6 +31,20 @@ void set_default_callbacks(GLFWwindow *window)
     glfwSetKeyCallback(window, glfw_key_callback);
 }
 
+void print_versions()
+{
+    const char* glfw_version = glfwGetVersionString();
+    const unsigned char* opengl_version = glGetString(GL_VERSION);
+    const unsigned char* vendor = glGetString(GL_VENDOR);
+    const unsigned char* renderer = glGetString(GL_RENDERER);
+    const unsigned char* glsl = glGetString(GL_SHADING_LANGUAGE_VERSION);
+    int numOfVertexAttributes;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numOfVertexAttributes);
+    printf("using GLFW %s\n", glfw_version);
+    printf("using OpenGL %s | %s | %s | GLSL %s | maxVertAttribs %i\n",
+            opengl_version, vendor, renderer, glsl, numOfVertexAttributes);
+}
+
 int Window::m_NumOfWindows = 0;
 
 Window::Window(const char *title, unsigned width, unsigned height, bool vsync = true, int samples = 0)
@@ -36,8 +54,7 @@ Window::Window(const char *title, unsigned width, unsigned height, bool vsync = 
     if (m_NumOfWindows == 0) {
         if (!glfwInit()) {
             fprintf(stderr, "Failed to init GLFW\n");
-            m_IsValid = false;
-            return;
+            throw std::runtime_error("Window() error");
         }
     }
 
@@ -49,8 +66,7 @@ Window::Window(const char *title, unsigned width, unsigned height, bool vsync = 
     m_Window = glfwCreateWindow(m_Data.width, m_Data.height, m_Data.title, NULL, NULL);
     if (m_Window == NULL) {
         fprintf(stderr, "Failed to create GLFW window");
-        m_IsValid = false;
-        return;
+        throw std::runtime_error("Window() error");
     }
 
     glfwSetWindowUserPointer(m_Window, &m_Data);
@@ -60,15 +76,15 @@ Window::Window(const char *title, unsigned width, unsigned height, bool vsync = 
     if (glewInit() != GLEW_OK) {
         fprintf(stderr, "Failed to init GLEW\n");
         glfwDestroyWindow(m_Window);
-        m_IsValid = false;
-        return;
+        throw std::runtime_error("Window() error");
     }
 
     SetVsync(m_Data.vsync);
 
+    if (PRINT_VERSIONS)
+        print_versions();
+
     m_NumOfWindows++;
-    m_IsValid = true;
-    return;
 }
 
 Window::~Window()
@@ -79,11 +95,6 @@ Window::~Window()
     if (m_NumOfWindows == 0) {
         glfwTerminate();
     }
-}
-
-bool Window::IsValid()
-{
-    return m_IsValid;
 }
 
 void Window::MakeContextCurrent()

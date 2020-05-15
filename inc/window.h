@@ -19,8 +19,6 @@ public:
     Window(const char *title, unsigned width, unsigned height, bool vsync, int samples);
     ~Window();
 
-    bool IsValid();
-
     void MakeContextCurrent();
 
     void Update();
@@ -37,7 +35,6 @@ public:
 
 private:
     static int m_NumOfWindows;
-    bool m_IsValid;
 
     GLFWwindow *m_Window;
     WindowData m_Data;

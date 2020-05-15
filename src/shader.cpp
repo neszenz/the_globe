@@ -6,22 +6,37 @@
 #include <sstream>
 #include <string>
 #include <stdio.h>
+#include <stdexcept>
 
 #include "engine.h"
 #include "gl_utils.h"
 
+unsigned int CreateShader(const char *name, const char *source, unsigned int type)
+{
+    unsigned int id;
+
+    GL(id = glCreateShader(type));
+    GL(glShaderSource(id, 1, &source, NULL));
+    GL(glCompileShader(id));
+
+    char infoLog[512];
+
+    int success;
+    GL(glGetShaderiv(id, GL_COMPILE_STATUS, &success));
+    if (!success)
+    {
+        GL(glGetShaderInfoLog(id, 512, NULL, infoLog));
+        fprintf(stderr, "Shader Error: Failed to compile shader '%s': \n%s\n", name, infoLog);
+        throw std::runtime_error("CreateShader() error");
+    }
+
+    printf("Loaded %s shader '%s'\n", type == 35633 ? "vertex" : "fragment", name);
+
+    return id;
+}
+
 Shader::Shader(const char *name, const char *vertexPath, const char *fragmentPath)
     : m_Name(name), m_VertexPath(vertexPath), m_FragmentPath(fragmentPath)
-{
-}
-
-Shader::~Shader()
-{
-    if (m_ProgramId != -1)
-        Destroy();
-}
-
-bool Shader::Create()
 {
     std::string vertexSource;
     std::string fragmentSource;
@@ -49,17 +64,13 @@ bool Shader::Create()
     catch (std::ifstream::failure e)
     {
         fprintf(stderr, "Shader Error: Failed to load shader '%s'\n", m_Name.c_str());
-        return false;
+        throw std::runtime_error("Shader() error");
     }
 
     GL(m_ProgramId = glCreateProgram());
 
     unsigned int vertexId = CreateShader(m_Name.c_str(), vertexSource.c_str(), GL_VERTEX_SHADER);
-    if (vertexId == -1)
-        return false;
     unsigned int fragmentId = CreateShader(m_Name.c_str(), fragmentSource.c_str(), GL_FRAGMENT_SHADER);
-    if (fragmentId == -1)
-        return false;
 
     GL(glAttachShader(m_ProgramId, vertexId));
     GL(glAttachShader(m_ProgramId, fragmentId));
@@ -73,7 +84,7 @@ bool Shader::Create()
     {
         GL(glGetShaderInfoLog(m_ProgramId, 512, NULL, infoLog));
         fprintf(stderr, "Shader Error: Failed to link shader program '%s': \n%s\n", m_Name.c_str(), infoLog);
-        return false;
+        throw std::runtime_error("Shader() error");
     }
 
     GL(glDeleteShader(vertexId));
@@ -95,14 +106,12 @@ bool Shader::Create()
     }
 
     printf("Loaded shader program '%s', uniforms: %d\n", m_Name.c_str(), uniformCount);
-    return true;
 }
 
-void Shader::Destroy()
+Shader::~Shader()
 {
     Unbind();
     GL(glDeleteProgram(m_ProgramId));
-    m_ProgramId = -1;
 }
 
 void Shader::Bind()
@@ -167,28 +176,4 @@ void Shader::UniformMat4(std::string name, glm::mat4 &value)
 {
     unsigned int location = m_Uniforms[name];
     GL(glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value)));
-}
-
-unsigned int Shader::CreateShader(const char *name, const char *source, unsigned int type)
-{
-    unsigned int id;
-
-    GL(id = glCreateShader(type));
-    GL(glShaderSource(id, 1, &source, NULL));
-    GL(glCompileShader(id));
-
-    char infoLog[512];
-
-    int success;
-    GL(glGetShaderiv(id, GL_COMPILE_STATUS, &success));
-    if (!success)
-    {
-        GL(glGetShaderInfoLog(id, 512, NULL, infoLog));
-        fprintf(stderr, "Shader Error: Failed to compile shader '%s': \n%s\n", name, infoLog);
-        return -1;
-    }
-
-    printf("Loaded %s shader '%s'\n", type == 35633 ? "vertex" : "fragment", name);
-
-    return id;
 }
