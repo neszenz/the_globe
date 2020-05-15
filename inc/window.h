@@ -21,6 +21,8 @@ public:
 
     bool IsValid();
 
+    void MakeContextCurrent();
+
     void Update();
 
     bool ShouldClose();

@@ -39,8 +39,6 @@ Window::Window(const char *title, unsigned width, unsigned height, bool vsync = 
             m_IsValid = false;
             return;
         }
-        printf("GLFW version: %s\n", glfwGetVersionString());
-
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -66,8 +64,6 @@ Window::Window(const char *title, unsigned width, unsigned height, bool vsync = 
         return;
     }
 
-    printf("OpenGL version: %s\n", glGetString(GL_VERSION));
-
     SetVsync(m_Data.vsync);
 
     m_NumOfWindows++;
@@ -88,6 +84,11 @@ Window::~Window()
 bool Window::IsValid()
 {
     return m_IsValid;
+}
+
+void Window::MakeContextCurrent()
+{
+    glfwMakeContextCurrent(m_Window);
 }
 
 void Window::Update()
