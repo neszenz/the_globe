@@ -17,7 +17,7 @@ void framebuffer_size_callback(GLFWwindow* win, int w, int h)
     data->height = h;
     GL(glViewport(0, 0, w, h));
 
-    printf("Resized %d, %d\n", data->width, data->height);
+    //printf("Resized %d, %d\n", data->width, data->height);
 }
 void set_default_callbacks(GLFWwindow *window)
 {

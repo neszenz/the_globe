@@ -8,7 +8,6 @@
 #include "window.h"
 
 Window* g_window = new Window("the_globe", 960, 540, true, 4);
-Window* g_window2 = new Window("the_globe", 960, 540, true, 4);
 double g_delta = 0.0;
 
 void print_versions() {
@@ -38,41 +37,21 @@ void compute_delta() {
 
 int main() {
     assert(g_window->IsValid());
-    assert(g_window2->IsValid());
 
     print_versions();
 
-    while (g_window || g_window2) {
+    while (!g_window->ShouldClose()) {
         PROFILER_RESET;
 
         PROFILE(compute_delta());
 
-        if (g_window) {
-            PROFILE(g_window->MakeContextCurrent());
-            PROFILE(glClear(GL_COLOR_BUFFER_BIT));
+        PROFILE(glClear(GL_COLOR_BUFFER_BIT));
 
-            if (!g_window->ShouldClose()) {
-                PROFILE(g_window->Update());
-            } else {
-                delete(g_window);
-                g_window = nullptr;
-            }
-        }
-        if (g_window2) {
-            PROFILE(g_window2->MakeContextCurrent());
-            PROFILE(glClear(GL_COLOR_BUFFER_BIT));
-
-            if (!g_window2->ShouldClose()) {
-                PROFILE(g_window2->Update());
-            } else {
-                delete(g_window2);
-                g_window2 = nullptr;
-            }
-        }
+        PROFILE(g_window->Update());
         std::this_thread::sleep_for(std::chrono::milliseconds(10)); //TODO rm
-        /* std::cout << string_from_seconds(delta) << ' ' << round(1/delta)  << " fps" << std::endl; */
 
-        /* PROFILER_PRINT; */
+        PROFILER_PRINT;
+        std::cout << string_from_seconds(g_delta) << ' ' << round(1/g_delta)  << " fps" << std::endl;
     }
 
     return 0;
