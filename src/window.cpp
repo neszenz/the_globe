@@ -47,7 +47,7 @@ void print_versions()
 
 int Window::m_NumOfWindows = 0;
 
-Window::Window(const char *title, unsigned width, unsigned height, bool vsync = true, int samples = 0)
+Window::Window(const char *title, unsigned width, unsigned height, bool vsync, int samples)
 {
     m_Data = WindowData{title, width, height, vsync};
 

@@ -16,7 +16,7 @@ struct WindowData
 class Window
 {
 public:
-    Window(const char *title, unsigned width, unsigned height, bool vsync, int samples);
+    Window(const char *title, unsigned width, unsigned height, bool vsync = true, int samples = 0);
     ~Window();
 
     void MakeContextCurrent();

@@ -14,3 +14,4 @@ void main()
 
     outColor = a_Color;
 }
+

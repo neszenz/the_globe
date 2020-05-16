@@ -8,3 +8,4 @@ void main()
 {
     FragColor = outColor;
 }
+

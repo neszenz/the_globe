@@ -5,4 +5,4 @@ Dependencies:
 - opengl + glew
 - glm
 
-In part based on HectorPeeters's [opengl_premake_boilerplate](https://github.com/HectorPeeters/opengl_premake_boilerplate).
+In part based on Hector Peeters's [opengl_premake_boilerplate](https://github.com/HectorPeeters/opengl_premake_boilerplate).
