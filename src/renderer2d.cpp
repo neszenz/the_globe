@@ -3,6 +3,8 @@
 
 #include "gl_utils.h"
 
+#define DEBUG
+
 Renderer2D::Renderer2D(Shader &shader, WindowData *windowData, int maxBatchQuadCount)
     : m_Shader(shader), m_WindowData(windowData), m_MaxBatchVertexCount(maxBatchQuadCount * 4)
 {
@@ -68,7 +70,7 @@ void Renderer2D::Destroy()
 void Renderer2D::Start()
 {
     m_ProjectionMatrix = glm::ortho(0.0f, (float)m_WindowData->width, (float)m_WindowData->height, 0.0f, 0.0f, -1000.0f);
-    m_ViewMatrix = glm::mat4();
+    m_ViewMatrix = glm::mat4(1.0);
 
     m_Shader.Bind();
     m_Shader.UniformMat4("u_Projection", m_ProjectionMatrix);
