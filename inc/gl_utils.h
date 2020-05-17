@@ -3,6 +3,8 @@
 
 #include "stdio.h"
 
+#define DEBUG
+
 #ifdef DEBUG
 #define GL(x)                                                                              \
     x;                                                                                     \

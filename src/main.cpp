@@ -27,12 +27,26 @@ void compute_delta() {
     last_time = curr_time;
 }
 
-void render_globe(const Window& window, Shader& shader, const Globe& globe) {
+void reset_opengl_settings() {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+    glFrontFace(GL_CCW);
+    glCullFace(GL_BACK);
+    glClearColor(0.0, 0.0, 0.0, 1.0);
+    assert(glGetError() == GL_NO_ERROR);
+}
+
+void render(const Window& window, Shader& shader, const Globe& globe) {
+    reset_opengl_settings();
+
     float w_half = 0.5 * window.GetSize().x;
     float h_half = 0.5 * window.GetSize().y;
-    glm::mat4 projection = glm::ortho(-w_half, w_half, -h_half, h_half, -1.0f, 1.0f);
-    glm::mat4 view = glm::mat4(1.0);
-    glm::mat4 model = glm::mat4(1.0);
+    glm::mat4 projection = glm::perspective(glm::radians(45.0f), w_half/h_half, 0.1f, 100.0f);
+    glm::mat4 view = glm::mat4(1.0f);
+    view = glm::translate(view, glm::vec3(0.0f, 0.0f, -4.0f));
+    glm::mat4 model = glm::mat4(1.0f);
+    model = glm::rotate(model, glm::radians(45.0f), glm::vec3(1.0f, 1.0f, 1.0f));
     glm::mat4 matrix = projection * view * model;
 
     window.MakeContextCurrent();
@@ -48,8 +62,8 @@ int main() {
 
         PROFILE(compute_delta());
 
-        PROFILE(glClear(GL_COLOR_BUFFER_BIT));
-        PROFILE(render_globe(g_window, g_shader, g_globe));
+        GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
+        PROFILE(render(g_window, g_shader, g_globe));
 
         PROFILE(g_window.Update());
         std::this_thread::sleep_for(std::chrono::milliseconds(10)); //TODO rm
