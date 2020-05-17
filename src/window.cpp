@@ -97,7 +97,7 @@ Window::~Window()
     }
 }
 
-void Window::MakeContextCurrent()
+void Window::MakeContextCurrent() const
 {
     glfwMakeContextCurrent(m_Window);
 }
@@ -134,7 +134,7 @@ WindowData *Window::GetDataPointer()
     return &m_Data;
 }
 
-glm::ivec2 Window::GetSize()
+glm::ivec2 Window::GetSize() const
 {
     return {m_Data.width, m_Data.height};
 }

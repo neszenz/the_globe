@@ -19,7 +19,7 @@ public:
     Window(const char *title, unsigned width, unsigned height, bool vsync = true, int samples = 0);
     ~Window();
 
-    void MakeContextCurrent();
+    void MakeContextCurrent() const;
 
     void Update();
 
@@ -31,7 +31,7 @@ public:
     GLFWwindow *GetGlfwWindow();
     WindowData *GetDataPointer();
 
-    glm::ivec2 GetSize();
+    glm::ivec2 GetSize() const;
 
 private:
     static int m_NumOfWindows;
