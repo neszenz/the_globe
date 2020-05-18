@@ -1,12 +1,11 @@
 #include <assert.h>
 #include <chrono>
 #include <iostream>
+#include <glm/glm.hpp>
 #include <thread>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "camera.hpp"
+#include "engine.hpp"
 #include "globe.hpp"
 #include "gl_utils.h"
 #include "profiler.hpp"
@@ -14,21 +13,28 @@
 #include "util.hpp"
 #include "window.h"
 
-// global vars (w/ prefix g_) are only to be defined here and accesed elsewhere
-// via the extern statement
 Window g_window("the_globe", 960, 540, true, 0);
 Camera g_camera(45.0f, g_window.GetAspect(), glm::vec3(0.0f, 0.0f, 5.0f));
 Shader g_shader("basic", "res/basic.vert", "res/basic.frag");
 Globe g_globe(8);
-double g_delta = -1.0;
+struct engine_t engine;
 
 void compute_delta() {
-    double curr_time = glfwGetTime();
     static double last_time = 0.0;
+    double curr_time = glfwGetTime();
 
-    g_delta = curr_time - last_time;
+    engine.delta = curr_time - last_time;
 
     last_time = curr_time;
+}
+
+void process_orbit() {
+    float speed = engine.mouse.is_down? 0.01f : 0.8f;
+    float smoothing = engine.delta * (1.0f / speed);
+    glm::vec2 curr_momentum = smoothing * engine.momentum;
+    g_camera.orbit_x(curr_momentum.x);
+    g_camera.orbit_y(curr_momentum.y);
+    engine.momentum -= curr_momentum;
 }
 
 void reset_opengl_settings() {
@@ -65,17 +71,18 @@ int main() {
         PROFILER_RESET;
 
         PROFILE(compute_delta());
-        PROFILE(g_globe.process_momentum(g_delta));
+        PROFILE(g_globe.process_momentum(engine.delta));
+        PROFILE(process_orbit());
         PROFILE(g_camera.set_aspect(g_window.GetAspect()));
 
         GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
         PROFILE(render(g_window, g_shader, g_camera, g_globe));
 
         PROFILE(g_window.Update());
-        std::this_thread::sleep_for(std::chrono::milliseconds(10)); //TODO rm
+        std::this_thread::sleep_for(std::chrono::milliseconds(6)); //TODO rm
 
         //PROFILER_PRINT;
-        //std::cout << string_from_seconds(g_delta) << ' ' << round(1/g_delta)  << " fps" << std::endl;
+        //std::cout << string_from_seconds(engine.delta) << ' ' << round(1/engine.delta)  << " fps" << std::endl;
     }
 
     return 0;

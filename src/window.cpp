@@ -29,6 +29,8 @@ void set_default_callbacks(GLFWwindow *window)
     glfwSetWindowSizeCallback(window, framebuffer_size_callback);
 
     glfwSetKeyCallback(window, glfw_key_callback);
+    glfwSetMouseButtonCallback(window, glfw_mouse_callback);
+    glfwSetCursorPosCallback(window, glfw_cursor_pos_callback);
 }
 
 void print_versions()

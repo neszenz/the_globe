@@ -4,5 +4,7 @@
 #include <GLFW/glfw3.h>
 
 void glfw_key_callback(GLFWwindow* win, int key, int scode, int action, int mods);
+void glfw_mouse_callback(GLFWwindow* window, int button, int action, int mods);
+void glfw_cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);
 
 #endif//ICU_HPP
