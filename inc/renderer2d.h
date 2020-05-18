@@ -1,7 +1,13 @@
 // based on 'https://github.com/HectorPeeters/opengl_premake_boilerplate'
 #pragma once
 
-#include "engine.h"
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "shader.h"
 #include "window.h"
 

@@ -1,6 +1,10 @@
 // based on 'https://github.com/HectorPeeters/opengl_premake_boilerplate'
 #include "shader.h"
 
+#include <GL/glew.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include <streambuf>
 #include <fstream>
 #include <sstream>
@@ -8,7 +12,6 @@
 #include <stdio.h>
 #include <stdexcept>
 
-#include "engine.h"
 #include "gl_utils.h"
 
 unsigned int CreateShader(const char *name, const char *source, unsigned int type)
