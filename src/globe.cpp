@@ -1,8 +1,10 @@
 #include "globe.hpp"
 
 #include <GL/glew.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
+#include <vector>
 
 #include "gl_utils.h"
 
@@ -83,6 +85,7 @@ void destroy_vertex_array(vertex_array_ids vai) {
     GL(glDeleteVertexArrays(1, &vai.vao));
 }
 
+// class implementation  - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ +
 Globe::Globe(int n_samples) {
     vertex_data_t vertices = {
         // position         // color
@@ -102,6 +105,32 @@ Globe::Globe(int n_samples) {
 
 Globe::~Globe() {
     destroy_vertex_array(m_vai);
+}
+
+glm::mat4 Globe::get_model_matrix() const {
+    return m_model;
+}
+void Globe::reset_model_matrix() {
+    m_model = glm::mat4(1.0f);
+}
+
+void Globe::add_momentum(const glm::vec3& impulse) {
+    m_momentum += impulse;
+}
+void Globe::add_momentum(float x, float y, float z) {
+    m_momentum += glm::vec3(x, y, z);
+}
+void Globe::process_momentum(double delta) {
+    float speed = 0.1f;
+    float smoothing = delta * (1.0f / speed);
+    glm::vec3 curr_momentum = smoothing * m_momentum;
+    m_model = glm::rotate(m_model, curr_momentum.x, glm::vec3(1.0f, 0.0f, 0.0f));
+    m_model = glm::rotate(m_model, curr_momentum.y, glm::vec3(0.0f, 1.0f, 0.0f));
+    m_model = glm::rotate(m_model, curr_momentum.z, glm::vec3(0.0f, 0.0f, 1.0f));
+    m_momentum -= curr_momentum;
+}
+void Globe::reset_momentum() {
+    m_momentum = glm::vec3(0.0f, 0.0f, 0.0f);
 }
 
 void Globe::draw() const {

@@ -32,7 +32,7 @@ public:
     WindowData *GetDataPointer();
 
     glm::ivec2 GetSize() const;
-
+    float GetAspect() const;
 private:
     static int m_NumOfWindows;
 

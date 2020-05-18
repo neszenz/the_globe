@@ -138,3 +138,12 @@ glm::ivec2 Window::GetSize() const
 {
     return {m_Data.width, m_Data.height};
 }
+
+float Window::GetAspect() const
+{
+    if (m_Data.height == 0) {
+        fprintf(stderr, "GetAspect() error - height is zero");
+    }
+
+    return float(m_Data.width) / m_Data.height;
+}
