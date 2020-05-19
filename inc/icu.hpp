@@ -1,6 +1,7 @@
 #ifndef ICU_HPP
 #define ICU_HPP
 
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 void glfw_key_callback(GLFWwindow* win, int key, int scode, int action, int mods);

@@ -5,9 +5,12 @@
 #include "camera.hpp"
 #include "engine.hpp"
 #include "globe.hpp"
+#include "util.hpp"
+#include "window.h"
 
-extern Globe g_globe;
+extern Window g_window;
 extern Camera g_camera;
+extern Globe g_globe;
 
 void glfw_key_callback(GLFWwindow* win, int key, int scode, int action, int mods) {
     if (action == GLFW_PRESS) {
@@ -46,9 +49,24 @@ void glfw_cursor_pos_callback(GLFWwindow* window, double xpos, double ypos) {
     double ymove = ypos - engine.mouse.ylast;
 
     if (engine.mouse.is_down) {
-        double smoothing = 200.0;
-        engine.momentum.x -= xmove / smoothing;
-        engine.momentum.y -= ymove / smoothing;
+        // momentum movement
+        if (std::abs(xmove + ymove) < 3) {
+            engine.momentum = glm::vec2(0.0f, 0.0f); // clear if barely moved
+        } else {
+            double smoothing = 200.0; //TODO make reso independent
+            engine.momentum.x -= xmove / smoothing;
+            engine.momentum.y -= ymove / smoothing;
+        }
+
+        // precision movement
+        glm::vec2 v0_2D = glm::vec2(engine.mouse.xlast, engine.mouse.ylast);
+        glm::vec2 v1_2D = glm::vec2(xpos, ypos);
+        glm::vec3 v0 = arc_ball_mapping(v0_2D, g_window.GetSize());
+        glm::vec3 v1 = arc_ball_mapping(v1_2D, g_window.GetSize());
+
+        float angle = acos(std::max(-1.0f, std::min(1.0f, glm::dot(v0, v1))));
+        glm::vec3 axis = glm::cross(v1, v0);
+        g_camera.orbit(angle, axis, glm::vec3(0.0f, 0.0f, 0.0f));
     }
 
     engine.mouse.xlast = xpos;

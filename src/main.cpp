@@ -1,3 +1,6 @@
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
 #include <assert.h>
 #include <chrono>
 #include <iostream>
@@ -28,12 +31,14 @@ void compute_delta() {
     last_time = curr_time;
 }
 
-void process_orbit() {
-    float speed = engine.mouse.is_down? 0.01f : 0.8f;
+void process_orbit_momentum() {
+    float speed = 0.2f;
     float smoothing = engine.delta * (1.0f / speed);
     glm::vec2 curr_momentum = smoothing * engine.momentum;
-    g_camera.orbit_x(curr_momentum.x);
-    g_camera.orbit_y(curr_momentum.y);
+    if (!engine.mouse.is_down) {
+        g_camera.orbit_x(curr_momentum.x);
+        g_camera.orbit_y(curr_momentum.y);
+    }
     engine.momentum -= curr_momentum;
 }
 
@@ -72,7 +77,7 @@ int main() {
 
         PROFILE(compute_delta());
         PROFILE(g_globe.process_momentum(engine.delta));
-        PROFILE(process_orbit());
+        PROFILE(process_orbit_momentum());
         PROFILE(g_camera.set_aspect(g_window.GetAspect()));
 
         GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));

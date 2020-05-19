@@ -1,10 +1,10 @@
 // based on 'https://github.com/HectorPeeters/opengl_premake_boilerplate'
 #pragma once
 
+#include <glm/glm.hpp>
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-
-#include <glm/glm.hpp>
 
 struct WindowData
 {
