@@ -109,10 +109,10 @@ void Camera::orbit(float angle, glm::vec3 axis, glm::vec3 center) {
     glm::vec3 pc = center - m_position;
     this->translate(pc);
 
-    glm::vec3 oaxis = glm::normalize(axis * m_orientation);
-    m_orientation *= glm::angleAxis(-angle, oaxis);
+    glm::quat aa = glm::angleAxis(-angle, glm::normalize(axis * m_orientation));
+    m_orientation *= aa;
 
-    glm::vec3 cp = -pc * glm::angleAxis(-angle, oaxis);
+    glm::vec3 cp = -pc * aa;
     this->translate(cp);
 }
 void Camera::orbit_x(float angle, glm::vec3 center) {
@@ -120,4 +120,7 @@ void Camera::orbit_x(float angle, glm::vec3 center) {
 }
 void Camera::orbit_y(float angle, glm::vec3 center) {
     this->orbit(angle, WORLD_RIGHT, center);
+}
+void Camera::orbit_z(float angle, glm::vec3 center) {
+    this->orbit(angle, WORLD_FRONT, center);
 }

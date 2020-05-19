@@ -43,6 +43,7 @@ class Camera {
         void orbit(float angle, glm::vec3 axis, glm::vec3 center);
         void orbit_x(float angle, glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f));
         void orbit_y(float angle, glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f));
+        void orbit_z(float angle, glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f));
     private:
         const float m_FOV = 45.0f;
         const float m_ASPECT = 1.0f;
