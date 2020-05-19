@@ -34,12 +34,14 @@ void compute_delta() {
 void process_orbit_momentum() {
     float speed = 0.2f;
     float smoothing = engine.delta * (1.0f / speed);
-    glm::vec2 curr_momentum = smoothing * engine.momentum;
+    glm::vec3 curr_momentum = smoothing * engine.momentum;
+    engine.momentum -= curr_momentum;
+
     if (!engine.mouse.is_down) {
         g_camera.orbit_x(curr_momentum.x);
         g_camera.orbit_y(curr_momentum.y);
+        g_camera.orbit_z(curr_momentum.z);
     }
-    engine.momentum -= curr_momentum;
 }
 
 void reset_opengl_settings() {

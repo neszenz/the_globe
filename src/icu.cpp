@@ -1,5 +1,6 @@
 #include "icu.hpp"
 
+#include <iostream>
 #include <glm/glm.hpp>
 
 #include "camera.hpp"
@@ -35,11 +36,9 @@ void glfw_mouse_callback(GLFWwindow* window, int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_LEFT) {
         if (action == GLFW_PRESS) {
             engine.mouse.is_down = true;
-            engine.momentum = glm::vec2(0.0f, 0.0f);
-            /* glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); */
+            engine.momentum = glm::vec3(0.0f);
         } else if (action == GLFW_RELEASE) {
             engine.mouse.is_down = false;
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         }
     }
 }
@@ -49,15 +48,6 @@ void glfw_cursor_pos_callback(GLFWwindow* window, double xpos, double ypos) {
     double ymove = ypos - engine.mouse.ylast;
 
     if (engine.mouse.is_down) {
-        // momentum movement
-        if (std::abs(xmove + ymove) < 3) {
-            engine.momentum = glm::vec2(0.0f, 0.0f); // clear if barely moved
-        } else {
-            double smoothing = 200.0; //TODO make reso independent
-            engine.momentum.x -= xmove / smoothing;
-            engine.momentum.y -= ymove / smoothing;
-        }
-
         // precision movement
         glm::vec2 v0_2D = glm::vec2(engine.mouse.xlast, engine.mouse.ylast);
         glm::vec2 v1_2D = glm::vec2(xpos, ypos);
@@ -67,6 +57,19 @@ void glfw_cursor_pos_callback(GLFWwindow* window, double xpos, double ypos) {
         float angle = acos(std::max(-1.0f, std::min(1.0f, glm::dot(v0, v1))));
         glm::vec3 axis = glm::cross(v1, v0);
         g_camera.orbit(angle, axis, glm::vec3(0.0f, 0.0f, 0.0f));
+
+        // momentum movement
+        if (std::abs(xmove + ymove) < 3) {
+            engine.momentum = glm::vec3(0.0f); // clear if barely moved/ stopped
+        } else {
+            float smoothing = 200; //TODO make reso independent
+            if (v1.z > 0.0) {
+                engine.momentum.x += -xmove / smoothing;
+                engine.momentum.y += -ymove / smoothing;
+            } else {
+                engine.momentum.z += (axis.z > 0.0f) ? angle : -angle;
+            }
+        }
     }
 
     engine.mouse.xlast = xpos;

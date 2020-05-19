@@ -1,5 +1,6 @@
 #include "util.hpp"
 
+#include <assert.h>
 #include <sstream>
 
 std::string string_from_seconds(double time) {
@@ -15,24 +16,25 @@ std::string string_from_seconds(double time) {
     return ss.str();
 }
 
-//TODO fix
 glm::vec3 arc_ball_mapping(glm::vec2 screen_vec, glm::ivec2 screen_size) {
-    double x =  (2.0 * screen_vec.x - screen_size.x) / screen_size.x;
-    double y = -(2.0 * screen_vec.y - screen_size.y) / screen_size.y;
-    double x2y2 = x * x + y * y;
+    // Ken Shoemake's ArcBall sphere mapping
+    glm::vec2 circle_center(screen_size.x/2, screen_size.y/2);
+    double radius = 400.0;
 
-    const double TRACKBALL_RADIUS = 1.0;
-    const double rsqr = TRACKBALL_RADIUS * TRACKBALL_RADIUS;
+    double x =  (screen_vec.x - circle_center.x) / radius;
+    double y = -(screen_vec.y - circle_center.y) / radius;
+    double z = 0.0;
+    double r = x*x + y*y;
 
-    glm::vec3 v3D;
-    v3D.x = x;
-    v3D.y = y;
-    if (x2y2 < 0.5 * rsqr) {
-        v3D.z = std::sqrt(rsqr - x2y2);
+    if (1.0 - r <= 0.0) { // modified condition fixes rounding issue for sqrt
+        double s = 1.0 / std::sqrt(r);
+        x = s * x;
+        y = s * y;
     } else {
-        v3D.z = 0.5 * rsqr / std::sqrt(x2y2);
+        assert(1.0 - r > 0.0); // should be redundant due to modified condition
+        z = std::sqrt(1.0 - r);
     }
 
-    return glm::normalize(v3D);
+    return glm::vec3(x, y, z);
 }
 
