@@ -1,6 +1,7 @@
 #include "util.hpp"
 
 #include <assert.h>
+#include <iostream>
 #include <sstream>
 
 std::string string_from_seconds(double time) {
@@ -19,7 +20,7 @@ std::string string_from_seconds(double time) {
 glm::vec3 arc_ball_mapping(glm::vec2 screen_vec, glm::ivec2 screen_size) {
     // Ken Shoemake's ArcBall sphere mapping
     glm::vec2 circle_center(screen_size.x/2, screen_size.y/2);
-    double radius = 400.0;
+    double radius = 0.9 * 0.5 * screen_size.y;
 
     double x =  (screen_vec.x - circle_center.x) / radius;
     double y = -(screen_vec.y - circle_center.y) / radius;
@@ -27,6 +28,7 @@ glm::vec3 arc_ball_mapping(glm::vec2 screen_vec, glm::ivec2 screen_size) {
     double r = x*x + y*y;
 
     if (1.0 - r <= 0.0) { // modified condition fixes rounding issue for sqrt
+        assert(r > 1.0);
         double s = 1.0 / std::sqrt(r);
         x = s * x;
         y = s * y;

@@ -84,7 +84,9 @@ void Camera::move_down(float value) {
 }
 
 void Camera::rotate(float angle, glm::vec3 axis) {
-    glm::vec3 oaxis = glm::normalize(axis * m_orientation);
+    glm::vec3 oaxis = axis * m_orientation;
+    if (glm::length(oaxis) > 0.0f)
+        oaxis = glm::normalize(oaxis);
     m_orientation *= glm::angleAxis(angle, oaxis);
 }
 void Camera::yaw(float angle) {
@@ -109,7 +111,10 @@ void Camera::orbit(float angle, glm::vec3 axis, glm::vec3 center) {
     glm::vec3 pc = center - m_position;
     this->translate(pc);
 
-    glm::quat aa = glm::angleAxis(-angle, glm::normalize(axis * m_orientation));
+    glm::vec3 oaxis = axis * m_orientation;
+    if (glm::length(oaxis) > 0.0f)
+        oaxis = glm::normalize(oaxis);
+    glm::quat aa = glm::angleAxis(-angle, oaxis);
     m_orientation *= aa;
 
     glm::vec3 cp = -pc * aa;
