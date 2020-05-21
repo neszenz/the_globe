@@ -62,12 +62,12 @@ void glfw_cursor_pos_callback(GLFWwindow* window, double xpos, double ypos) {
         if (std::abs(xmove + ymove) < 3) {
             engine.momentum = glm::vec3(0.0f); // clear if barely moved/ stopped
         } else {
-            float smoothing = 200; //TODO make reso independent
+            float speed = 4;
             if (v1.z > 0.0) {
-                engine.momentum.x += -xmove / smoothing;
-                engine.momentum.y += -ymove / smoothing;
+                engine.momentum.x += speed * -(xmove / g_window.GetSize().x);
+                engine.momentum.y += speed * -(ymove / g_window.GetSize().y);
             } else {
-                engine.momentum.z += (axis.z > 0.0f) ? angle : -angle;
+                engine.momentum.z += speed * ((axis.z > 0.0f) ? angle : -angle);
             }
         }
     }
