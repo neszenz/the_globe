@@ -75,3 +75,17 @@ void glfw_cursor_pos_callback(GLFWwindow* window, double xpos, double ypos) {
     engine.mouse.xlast = xpos;
     engine.mouse.ylast = ypos;
 }
+
+void glfw_scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+    float upper_bound = 180.0;
+    float lower_bound = 0.1;
+    float smoothing = 0.2;
+    float new_fov = g_camera.fov() - yoffset / smoothing;
+    if(new_fov <= lower_bound) {
+        g_camera.fov(lower_bound);
+    } else if(new_fov >= upper_bound) {
+        g_camera.fov(upper_bound);
+    } else {
+        g_camera.fov(new_fov);
+    }
+}

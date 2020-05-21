@@ -16,6 +16,9 @@ class Camera {
         glm::vec3 right() const;
         glm::vec3 up() const;
 
+        float fov() const;
+        void fov(float new_fov);
+
         void set_aspect(float aspect);
 
         void reset();

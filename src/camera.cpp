@@ -31,6 +31,13 @@ glm::vec3 Camera::up() const {
     return glm::mat3_cast(m_orientation)[1];
 }
 
+float Camera::fov() const {
+    return m_fov;
+}
+void Camera::fov(float new_fov) {
+    m_fov = new_fov;
+}
+
 void Camera::set_aspect(float aspect) {
     m_aspect = aspect;
 }
