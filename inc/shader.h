@@ -11,20 +11,20 @@ public:
     Shader(const char *name, const char *vertexPath, const char *fragmentPath);
     ~Shader();
 
-    void Bind();
-    void Unbind();
+    void Bind() const;
+    void Unbind() const;
 
-    void Uniform1f(std::string name, float value);
-    void Uniform2f(std::string name, glm::vec2 &value);
-    void Uniform3f(std::string name, glm::vec3 &value);
-    void Uniform4f(std::string name, glm::vec4 &value);
+    void Uniform1f(std::string name, float value) const;
+    void Uniform2f(std::string name, glm::vec2 &value) const;
+    void Uniform3f(std::string name, glm::vec3 &value) const;
+    void Uniform4f(std::string name, glm::vec4 &value) const;
 
-    void Uniform1i(std::string name, int value);
-    void Uniform2i(std::string name, glm::ivec2 &value);
-    void Uniform3i(std::string name, glm::ivec3 &value);
-    void Uniform4i(std::string name, glm::ivec4 &value);
+    void Uniform1i(std::string name, int value) const;
+    void Uniform2i(std::string name, glm::ivec2 &value) const;
+    void Uniform3i(std::string name, glm::ivec3 &value) const;
+    void Uniform4i(std::string name, glm::ivec4 &value) const;
 
-    void UniformMat4(std::string name, glm::mat4 &value);
+    void UniformMat4(std::string name, glm::mat4 &value) const;
 
 private:
     int m_ProgramId;
