@@ -19,16 +19,8 @@ void glfw_key_callback(GLFWwindow* win, int key, int scode, int action, int mods
             glfwSetWindowShouldClose(win, GLFW_TRUE);
 
         if (key == GLFW_KEY_C) {
-            g_camera.reset_position();
-            g_camera.reset_orientation();
+            g_camera.reset();
         }
-
-        if (key == GLFW_KEY_J)
-            g_globe.add_momentum(1.0f, 0.0f, 0.0f);
-        if (key == GLFW_KEY_K)
-            g_globe.add_momentum(0.0f, 1.0f, 0.0f);
-        if (key == GLFW_KEY_L)
-            g_globe.add_momentum(0.0f, 0.0f, 1.0f);
     }
 }
 

@@ -8,6 +8,9 @@
 
 #include "gl_utils.h"
 
+#define SAMPLE_COLOR_0 glm::vec3(1.0f, 1.0f, 0.0f)
+#define SAMPLE_COLOR_1 glm::vec3(0.0f, 1.0f, 0.5f)
+
 typedef std::vector<float> vertex_data_t;
 typedef std::vector<unsigned> element_data_t;
 
@@ -39,7 +42,7 @@ vertex_array_ids create_vertex_array(const vertex_data_t& vertices,
     GL(glBindBuffer(GL_ARRAY_BUFFER, 0));
     GL(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 
-    return {vao, vbo, ebo};
+    return {vao, vbo, ebo, elements.size()};
 }
 
 vertex_array_ids create_color_cube() {
@@ -79,6 +82,95 @@ vertex_array_ids create_color_cube() {
     return create_vertex_array(vertices, elements);
 }
 
+vertex_array_ids create_sample_2d(float size) {
+    assert(size > 0.0f);
+    float r = SAMPLE_COLOR_0.r;
+    float g = SAMPLE_COLOR_0.g;
+    float b = SAMPLE_COLOR_0.b;
+    vertex_data_t vertices = {
+        // position               // color
+         0*size,  0*size, 0.0,    r, g, b,
+        -3*size, -3*size, 0.0,    r, g, b,
+         0*size, -2*size, 0.0,    r, g, b,
+         3*size, -3*size, 0.0,    r, g, b,
+         2*size,  0*size, 0.0,    r, g, b,
+         3*size,  3*size, 0.0,    r, g, b,
+         0*size,  2*size, 0.0,    r, g, b,
+        -3*size,  3*size, 0.0,    r, g, b,
+        -2*size,  0*size, 0.0,    r, g, b,
+    };
+    element_data_t elements = {
+        0, 1, 2,
+        0, 2, 3,
+        0, 3, 4,
+        0, 4, 5,
+        0, 5, 6,
+        0, 6, 7,
+        0, 7, 8,
+        0, 8, 1,
+    };
+
+    return create_vertex_array(vertices, elements);
+}
+
+vertex_array_ids create_sample_3d(float size, float radius, float dent) {
+    assert(size > 0.0f);
+    assert(radius > 0.0f);
+    assert(dent > 0.0f && dent < radius);
+
+    float r0 = SAMPLE_COLOR_0.r;
+    float g0 = SAMPLE_COLOR_0.g;
+    float b0 = SAMPLE_COLOR_0.b;
+    float r1 = SAMPLE_COLOR_1.r;
+    float g1 = SAMPLE_COLOR_1.g;
+    float b1 = SAMPLE_COLOR_1.b;
+    float i_factor = dent / radius;
+    float ri = i_factor*r1 + (1.0f-i_factor)*r0;
+    float gi = i_factor*g1 + (1.0f-i_factor)*g0;
+    float bi = i_factor*b1 + (1.0f-i_factor)*b0;
+
+    vertex_data_t vertices = {
+        // position                        // color
+         0*size,  0*size, radius-dent,     ri, gi, bi,
+        -3*size, -3*size, radius,          r0, g0, b0,
+         0*size, -2*size, radius,          r0, g0, b0,
+         3*size, -3*size, radius,          r0, g0, b0,
+         2*size,  0*size, radius,          r0, g0, b0,
+         3*size,  3*size, radius,          r0, g0, b0,
+         0*size,  2*size, radius,          r0, g0, b0,
+        -3*size,  3*size, radius,          r0, g0, b0,
+        -2*size,  0*size, radius,          r0, g0, b0,
+            0.0,     0.0,    0.0,          r1, g1, b1,
+    };
+    element_data_t elements = {
+        0, 1, 2,
+        0, 2, 3,
+        0, 3, 4,
+        0, 4, 5,
+        0, 5, 6,
+        0, 6, 7,
+        0, 7, 8,
+        0, 8, 1,
+
+        9, 2, 1,
+        9, 3, 2,
+        9, 4, 3,
+        9, 5, 4,
+        9, 6, 5,
+        9, 7, 6,
+        9, 8, 7,
+        9, 1, 8,
+    };
+
+    return create_vertex_array(vertices, elements);
+}
+
+void draw_vertex_array(vertex_array_ids vai) {
+    GL(glBindVertexArray(vai.vao));
+    GL(glDrawElements(GL_TRIANGLES, vai.n_elements, GL_UNSIGNED_INT, (void *)0));
+    GL(glBindVertexArray(0));
+}
+
 void destroy_vertex_array(vertex_array_ids vai) {
     GL(glDeleteBuffers(1, &vai.ebo));
     GL(glDeleteBuffers(1, &vai.vbo));
@@ -86,41 +178,9 @@ void destroy_vertex_array(vertex_array_ids vai) {
 }
 
 // class implementation  - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ +
-Globe::Globe(int n_samples) {
-    vertex_data_t vertices = {
-        // position         // color
-        -3.0, -1.0,  0.0,    0.5, 0.5, 0.5,
-        -2.0, -1.0,  0.0,    1.0, 0.0, 0.0,
-        -1.0, -1.0,  0.0,    1.0, 1.0, 0.0,
-         0.0, -1.0,  0.0,    0.0, 1.0, 0.0,
-         1.0, -1.0,  0.0,    0.0, 1.0, 1.0,
-         2.0, -1.0,  0.0,    0.0, 0.0, 1.0,
-         3.0, -1.0,  0.0,    0.0, 0.0, 0.0,
-         3.0,  1.0,  0.0,    0.0, 0.0, 0.0,
-         2.0,  1.0,  0.0,    0.0, 0.0, 1.0,
-         1.0,  1.0,  0.0,    0.0, 1.0, 1.0,
-         0.0,  1.0,  0.0,    0.0, 1.0, 0.0,
-        -1.0,  1.0,  0.0,    1.0, 1.0, 0.0,
-        -2.0,  1.0,  0.0,    1.0, 0.0, 0.0,
-        -3.0,  1.0,  0.0,    0.5, 0.5, 0.5,
-    };
-    element_data_t elements = {
-        0, 1, 12,
-        0, 12, 13,
-        1, 2, 11,
-        1, 11, 12,
-        2, 3, 10,
-        2, 10, 11,
-        3, 4, 9,
-        3, 9, 10,
-        4, 5, 8,
-        4, 8, 9,
-        5, 6, 7,
-        5, 7, 8
-    };
-
-    /* m_vai = create_vertex_array(vertices, elements); */
-    m_vai = create_vertex_array(vertices, elements);
+Globe::Globe(int n_samples) : m_num_samples(n_samples) {
+    /* m_vai = create_sample_2d(10.0f); */
+    m_vai = create_sample_3d(2.0f, 10.0f, 5.0f);
 
     std::cout << "globe created" << std::endl;
 }
@@ -129,34 +189,17 @@ Globe::~Globe() {
     destroy_vertex_array(m_vai);
 }
 
-glm::mat4 Globe::get_model_matrix() const {
-    return m_model;
-}
-void Globe::reset_model_matrix() {
-    m_model = glm::mat4(1.0f);
-}
+void Globe::draw(const Shader& shader, const Camera& camera) const {
+    glm::mat4 proj_view = camera.get_proj_matrix() * camera.get_view_matrix();
 
-void Globe::add_momentum(const glm::vec3& impulse) {
-    m_momentum += impulse;
-}
-void Globe::add_momentum(float x, float y, float z) {
-    m_momentum += glm::vec3(x, y, z);
-}
-void Globe::process_momentum(double delta) {
-    float speed = 0.1f;
-    float smoothing = delta * (1.0f / speed);
-    glm::vec3 curr_momentum = smoothing * m_momentum;
-    m_model = glm::rotate(m_model, curr_momentum.x, glm::vec3(1.0f, 0.0f, 0.0f));
-    m_model = glm::rotate(m_model, curr_momentum.y, glm::vec3(0.0f, 1.0f, 0.0f));
-    m_model = glm::rotate(m_model, curr_momentum.z, glm::vec3(0.0f, 0.0f, 1.0f));
-    m_momentum -= curr_momentum;
-}
-void Globe::reset_momentum() {
-    m_momentum = glm::vec3(0.0f, 0.0f, 0.0f);
-}
+    for (unsigned i_sample = 0; i_sample < m_num_samples; i_sample++) {
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(pow(-1,i_sample)*i_sample*2.0f, 0.0f, i_sample*-5.0f));
+        glm::mat4 matrix = proj_view * model;
 
-void Globe::draw() const {
-    GL(glBindVertexArray(m_vai.vao));
-    GL(glDrawElements(GL_TRIANGLES, 12*3, GL_UNSIGNED_INT, (void *)0));
-    GL(glBindVertexArray(0));
+        shader.Bind();
+        shader.UniformMat4("u_matrix", matrix);
+
+        draw_vertex_array(m_vai);
+    }
 }
