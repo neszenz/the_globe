@@ -8,8 +8,8 @@
 #define WORLD_RIGHT glm::vec3(1.0f, 0.0f, 0.0f)
 #define WORLD_FRONT glm::vec3(0.0f, 0.0f, 1.0f)
 
-Camera::Camera(float fov, float aspect, glm::vec3 offset) : m_fov(fov), m_aspect(aspect), m_offset(offset) {
-    this->translate(m_offset);
+Camera::Camera(float fov, float aspect, glm::vec3 offset) : m_fov_default(fov), m_aspect_default(aspect), m_offset(offset) {
+    this->reset();
 }
 Camera::~Camera() {
 }
@@ -43,12 +43,15 @@ void Camera::set_aspect(float aspect) {
 }
 
 void Camera::reset() {
-    m_fov = m_FOV;
-    m_aspect = m_ASPECT;
+    this->reset_fov();
+    m_aspect = m_aspect_default;
     m_near = m_NEAR;
     m_far = m_FAR;
     this->reset_position();
     this->reset_orientation();
+}
+void Camera::reset_fov() {
+    m_fov = m_fov_default;
 }
 void Camera::reset_position() {
     m_position = m_POSITION;

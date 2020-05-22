@@ -6,7 +6,7 @@
 
 class Camera {
     public:
-        Camera(float fov, float aspect, glm::vec3 offset);
+        Camera(float fov, float aspect, glm::vec3 offset = glm::vec3(0.0f));
         ~Camera();
 
         glm::mat4 get_proj_matrix() const;
@@ -22,6 +22,7 @@ class Camera {
         void set_aspect(float aspect);
 
         void reset();
+        void reset_fov();
         void reset_position();
         void reset_orientation();
 
@@ -48,20 +49,24 @@ class Camera {
         void orbit_y(float angle, glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f));
         void orbit_z(float angle, glm::vec3 center = glm::vec3(0.0f, 0.0f, 0.0f));
     private:
-        const float m_FOV = 45.0f;
-        const float m_ASPECT = 1.0f;
+        // compile-time constants
         const float m_NEAR = 0.1f;
         const float m_FAR = 1000.0f;
         const glm::vec3 m_POSITION = glm::vec3(0.0f, 0.0f, 0.0f);
         const glm::quat m_ORIENTATION = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
 
-        float m_fov = m_FOV;
-        float m_aspect = m_ASPECT;
-        float m_near = m_NEAR;
-        float m_far = m_FAR;
-        glm::vec3 m_offset = glm::vec3(0.0f, 0.0f, 0.0f);
-        glm::vec3 m_position = m_POSITION;
-        glm::quat m_orientation = m_ORIENTATION;
+        // instantation-time constants
+        float m_fov_default;
+        float m_aspect_default;
+        glm::vec3 m_offset;
+
+        // current state
+        float m_fov;
+        float m_aspect;
+        float m_near;
+        float m_far;
+        glm::vec3 m_position;
+        glm::quat m_orientation;
 };
 
 #endif//CAMERA_HPP
