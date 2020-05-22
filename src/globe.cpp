@@ -8,8 +8,8 @@
 
 #include "gl_utils.h"
 
-#define SAMPLE_COLOR_0 glm::vec3(1.0f, 1.0f, 0.0f)
-#define SAMPLE_COLOR_1 glm::vec3(0.0f, 1.0f, 0.5f)
+#define SAMPLE_COLOR_0 glm::vec3(0.9f, 0.9f, 0.9f)
+#define SAMPLE_COLOR_1 glm::vec3(1.2f, 1.2f, 1.2f)
 
 typedef std::vector<float> vertex_data_t;
 typedef std::vector<unsigned> element_data_t;
@@ -178,9 +178,9 @@ void destroy_vertex_array(vertex_array_ids vai) {
 }
 
 // class implementation  - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ +
-Globe::Globe(int n_samples) : m_num_samples(n_samples) {
-    /* m_vai = create_sample_2d(10.0f); */
-    m_vai = create_sample_3d(2.0f, 10.0f, 5.0f);
+Globe::Globe(unsigned n_samples, unsigned n_spirals, float radius) : m_num_samples(n_samples), m_num_spirals(n_spirals) {
+    m_vai = create_sample_2d(1.0f);
+    /* m_vai = create_sample_3d(1.0f, radius, 0.2f*radius); */
 
     std::cout << "globe created" << std::endl;
 }
@@ -192,14 +192,25 @@ Globe::~Globe() {
 void Globe::draw(const Shader& shader, const Camera& camera) const {
     glm::mat4 proj_view = camera.get_proj_matrix() * camera.get_view_matrix();
 
-    for (unsigned i_sample = 0; i_sample < m_num_samples; i_sample++) {
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(pow(-1,i_sample)*i_sample*2.0f, 0.0f, i_sample*-5.0f));
-        glm::mat4 matrix = proj_view * model;
+    unsigned skip = 32;
+    for (unsigned i_spiral = 0; i_spiral < m_num_spirals; i_spiral++) {
+        float init_angle = float(i_spiral * 360) / m_num_spirals;
+        for (unsigned i_sample = skip; i_sample < m_num_samples; i_sample++) {
+            glm::vec3 offset = glm::vec3(i_sample*2.0f, 0.0f, 0.0f);
+            float angle = float(i_sample * 360) / m_num_samples;
+            float scale = pow(float(i_sample+1) / m_num_samples, 3);
 
-        shader.Bind();
-        shader.UniformMat4("u_matrix", matrix);
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::scale(model, scale*glm::vec3(1.0f));
+            model = glm::rotate(model, glm::radians(init_angle + angle), glm::vec3(0.0f, 0.0f, 1.0f));
+            model = glm::translate(model, offset);
+            model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            glm::mat4 matrix = proj_view * model;
 
-        draw_vertex_array(m_vai);
+            shader.Bind();
+            shader.UniformMat4("u_matrix", matrix);
+
+            draw_vertex_array(m_vai);
+        }
     }
 }

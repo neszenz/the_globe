@@ -19,7 +19,7 @@
 Window g_window("the_globe", 960, 540, true, 0);
 Camera g_camera(45.0f, g_window.GetAspect(), glm::vec3(0.0f, 0.0f, 50.0f));
 Shader g_shader("basic", "res/shaders/basic.vert", "res/shaders/basic.frag");
-Globe g_globe(32);
+Globe g_globe(64, 32, 5.0f);
 struct engine_t engine;
 
 void compute_delta() {
@@ -71,7 +71,7 @@ int main() {
         PROFILE(g_globe.draw(g_shader, g_camera));
 
         PROFILE(g_window.Update());
-        std::this_thread::sleep_for(std::chrono::milliseconds(6)); //TODO rm
+        /* std::this_thread::sleep_for(std::chrono::milliseconds(6)); //TODO rm */
 
         //PROFILER_PRINT;
         //std::cout << string_from_seconds(engine.delta) << ' ' << round(1/engine.delta)  << " fps" << std::endl;
