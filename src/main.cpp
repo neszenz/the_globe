@@ -17,9 +17,9 @@
 #include "window.h"
 
 Window g_window("the_globe", 960, 540, true, 0);
-Camera g_camera(45.0f, g_window.GetAspect(), glm::vec3(0.0f, 0.0f, 50.0f));
+Camera g_camera(45.0f, g_window.GetAspect(), glm::vec3(0.0f, 0.0f, 4.0f));
 Shader g_shader("basic", "res/shaders/basic.vert", "res/shaders/basic.frag");
-Globe g_globe(64, 32, 5.0f);
+Globe g_globe(23);
 struct engine_t engine;
 
 void compute_delta() {

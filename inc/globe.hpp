@@ -15,13 +15,13 @@ struct vertex_array_ids {
 
 class Globe {
     public:
-        Globe(unsigned n_samples, unsigned n_spirals, float radius);
+        Globe(unsigned n_samples_equator, float radius = 1.0f);
         ~Globe();
 
         void draw(const Shader& shader, const Camera& camera) const;
     private:
-        unsigned m_num_samples;
-        unsigned m_num_spirals;
+        unsigned m_n_samples_equator;
+        unsigned m_n_rings;
         vertex_array_ids m_vai;
 };
 

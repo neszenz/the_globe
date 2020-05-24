@@ -9,7 +9,7 @@
 #include "gl_utils.h"
 
 #define SAMPLE_COLOR_0 glm::vec3(0.9f, 0.9f, 0.9f)
-#define SAMPLE_COLOR_1 glm::vec3(1.2f, 1.2f, 1.2f)
+#define SAMPLE_COLOR_1 glm::vec3(1.1f, 0.1f, 1.1f)
 
 typedef std::vector<float> vertex_data_t;
 typedef std::vector<unsigned> element_data_t;
@@ -178,9 +178,12 @@ void destroy_vertex_array(vertex_array_ids vai) {
 }
 
 // class implementation  - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ +
-Globe::Globe(unsigned n_samples, unsigned n_spirals, float radius) : m_num_samples(n_samples), m_num_spirals(n_spirals) {
-    m_vai = create_sample_2d(1.0f);
-    /* m_vai = create_sample_3d(1.0f, radius, 0.2f*radius); */
+Globe::Globe(unsigned n_samples_equator, float radius) : m_n_samples_equator(n_samples_equator) {
+    assert(n_samples_equator >= 4);
+    assert(radius > 0.0f);
+    float size = 0.71*radius / n_samples_equator; // deduced from testing
+    m_n_rings = 0.185*radius / size; // deduced from testing
+    m_vai = create_sample_3d(size, radius, 0.2f*radius);
 
     std::cout << "globe created" << std::endl;
 }
@@ -191,26 +194,35 @@ Globe::~Globe() {
 
 void Globe::draw(const Shader& shader, const Camera& camera) const {
     glm::mat4 proj_view = camera.get_proj_matrix() * camera.get_view_matrix();
+    glm::mat4 eighth_roll = glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    shader.Bind();
 
-    unsigned skip = 32;
-    for (unsigned i_spiral = 0; i_spiral < m_num_spirals; i_spiral++) {
-        float init_angle = float(i_spiral * 360) / m_num_spirals;
-        for (unsigned i_sample = skip; i_sample < m_num_samples; i_sample++) {
-            glm::vec3 offset = glm::vec3(i_sample*2.0f, 0.0f, 0.0f);
-            float angle = float(i_sample * 360) / m_num_samples;
-            float scale = pow(float(i_sample+1) / m_num_samples, 3);
+    for (unsigned i_ring = 0; i_ring <= m_n_rings; i_ring++) {
+        float angle_y = 0.5f*M_PI * i_ring / m_n_rings;
+        // samples per ring decreases non-linearly depending on ring's radius
+        unsigned n_samples = ceil(m_n_samples_equator * std::abs(sin(angle_y + 0.5f*M_PI)));
+        for (unsigned i_sample = 0; i_sample < n_samples; i_sample++) {
+            float angle_x = 2.0f*M_PI * i_sample / n_samples;
 
+            //float latitude = angle_y;
+            //float longitude = (angle_x < M_PI)? angle_x : -2.0f*M_PI + angle_x;
+
+            // equator and northern hemisphere
             glm::mat4 model = glm::mat4(1.0f);
-            model = glm::scale(model, scale*glm::vec3(1.0f));
-            model = glm::rotate(model, glm::radians(init_angle + angle), glm::vec3(0.0f, 0.0f, 1.0f));
-            model = glm::translate(model, offset);
-            model = glm::rotate(model, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-            glm::mat4 matrix = proj_view * model;
+            model = glm::rotate(model, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
+            model = glm::rotate(model, angle_y, glm::vec3(-1.0f, 0.0f, 0.0f));
+            glm::mat4 matrix = proj_view * model * eighth_roll;
 
-            shader.Bind();
             shader.UniformMat4("u_matrix", matrix);
-
             draw_vertex_array(m_vai);
+
+            // southern hemisphere
+            if (i_ring > 0) { // skips the equator to avoid sampling it twice
+                model = glm::rotate(model, -2*angle_y, glm::vec3(-1.0f, 0.0f, 0.0f));
+                matrix = proj_view * model * eighth_roll;
+                shader.UniformMat4("u_matrix", matrix);
+                draw_vertex_array(m_vai);
+            }
         }
     }
 }
