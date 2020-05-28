@@ -56,9 +56,16 @@ void reset_opengl_settings() {
     GL(glClearColor(1.0, 1.0, 1.0, 1.0));
 }
 
+void render_globe() {
+        glm::mat4 matrix = g_camera.get_proj_matrix()*g_camera.get_view_matrix();
+        g_shader.UniformMat4("u_matrix", matrix);
+        g_globe.draw();
+}
+
 int main() {
     g_window.MakeContextCurrent();
     reset_opengl_settings();
+    g_shader.Bind();
     while (!g_window.ShouldClose()) {
         PROFILER_RESET;
 
@@ -68,13 +75,13 @@ int main() {
 
         // render calls
         PROFILE(GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)));
-        PROFILE(g_globe.draw(g_shader, g_camera));
+        PROFILE(render_globe());
 
         PROFILE(g_window.Update());
         /* std::this_thread::sleep_for(std::chrono::milliseconds(6)); //TODO rm */
 
-        //PROFILER_PRINT;
-        //std::cout << string_from_seconds(engine.delta) << ' ' << round(1/engine.delta)  << " fps" << std::endl;
+        PROFILER_PRINT;
+        std::cout << string_from_seconds(engine.delta) << ' ' << round(1/engine.delta)  << " fps" << std::endl;
     }
 
     return 0;

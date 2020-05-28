@@ -11,6 +11,10 @@
 #define SAMPLE_COLOR_0 glm::vec3(0.9f, 0.9f, 0.9f)
 #define SAMPLE_COLOR_1 glm::vec3(1.1f, 0.1f, 1.1f)
 
+#define X_AXIS glm::vec3(1.0f, 0.0f, 0.0f)
+#define Y_AXIS glm::vec3(0.0f, 1.0f, 0.0f)
+#define Z_AXIS glm::vec3(0.0f, 0.0f, 1.0f)
+
 typedef std::vector<float> vertex_data_t;
 typedef std::vector<unsigned> element_data_t;
 
@@ -45,79 +49,45 @@ vertex_array_ids create_vertex_array(const vertex_data_t& vertices,
     return {vao, vbo, ebo, elements.size()};
 }
 
-vertex_array_ids create_color_cube() {
-    vertex_data_t vertices = {
-        // position         // color
-         1.0,  1.0,  1.0,   1.0, 1.0, 1.0,  // 0 front top right
-         1.0, -1.0,  1.0,   1.0, 0.0, 1.0,  // 1 front bottom right
-        -1.0, -1.0,  1.0,   0.0, 0.0, 1.0,  // 2 front bottom left
-        -1.0,  1.0,  1.0,   0.0, 1.0, 1.0,  // 3 front top left
+// positions and colors verctor of default sample and model matrices per sample
+vertex_data_t globe_vertices(std::vector<glm::vec3> pos, std::vector<glm::vec3> col, std::vector<glm::mat4> model_matrices) {
+    assert(pos.size() == col.size());
 
-         1.0,  1.0, -1.0,   1.0, 1.0, 0.0,  // 4 back top right
-         1.0, -1.0, -1.0,   1.0, 0.0, 0.0,  // 5 back bottom right
-        -1.0, -1.0, -1.0,   0.0, 0.0, 0.0,  // 6 back bottom left
-        -1.0,  1.0, -1.0,   0.0, 1.0, 0.0   // 7 back top left
-    };
-    element_data_t elements = {
-        // front side
-        0, 3, 1,
-        3, 2, 1,
-        // back side
-        7, 4, 6,
-        4, 5, 6,
-        // left side
-        3, 7, 2,
-        7, 6, 2,
-        // right side
-        4, 0, 5,
-        0, 1, 5,
-        // bottom side
-        1, 2, 5,
-        2, 6, 5,
-        // top side
-        4, 7, 0,
-        7, 3, 0
-    };
+    vertex_data_t vertices;
 
-    return create_vertex_array(vertices, elements);
+    for (const glm::mat4& model : model_matrices) {
+        for (unsigned i = 0; i < pos.size(); ++i) {
+            glm::vec4 p = model * glm::vec4(pos.at(i), 1.0f);
+            vertices.push_back(p.x);
+            vertices.push_back(p.y);
+            vertices.push_back(p.z);
+            vertices.push_back(col.at(i).r);
+            vertices.push_back(col.at(i).g);
+            vertices.push_back(col.at(i).b);
+        }
+    }
+
+    return vertices;
 }
 
-vertex_array_ids create_sample_2d(float size) {
-    assert(size > 0.0f);
-    float r = SAMPLE_COLOR_0.r;
-    float g = SAMPLE_COLOR_0.g;
-    float b = SAMPLE_COLOR_0.b;
-    vertex_data_t vertices = {
-        // position               // color
-         0*size,  0*size, 0.0,    r, g, b,
-        -3*size, -3*size, 0.0,    r, g, b,
-         0*size, -2*size, 0.0,    r, g, b,
-         3*size, -3*size, 0.0,    r, g, b,
-         2*size,  0*size, 0.0,    r, g, b,
-         3*size,  3*size, 0.0,    r, g, b,
-         0*size,  2*size, 0.0,    r, g, b,
-        -3*size,  3*size, 0.0,    r, g, b,
-        -2*size,  0*size, 0.0,    r, g, b,
-    };
-    element_data_t elements = {
-        0, 1, 2,
-        0, 2, 3,
-        0, 3, 4,
-        0, 4, 5,
-        0, 5, 6,
-        0, 6, 7,
-        0, 7, 8,
-        0, 8, 1,
-    };
+element_data_t expand_elements(const element_data_t& elem, unsigned n_samples, unsigned n_vertices) {
+    element_data_t elements;
 
-    return create_vertex_array(vertices, elements);
+    for (unsigned i_sample = 0; i_sample < n_samples; ++i_sample) {
+        for (unsigned e : elem) {
+            elements.push_back(e + i_sample * n_vertices);
+        }
+    }
+
+    return elements;
 }
 
-vertex_array_ids create_sample_3d(float size, float radius, float dent) {
+vertex_array_ids create_globe(float size, float radius, std::vector<glm::mat4> model_matrices) {
     assert(size > 0.0f);
     assert(radius > 0.0f);
-    assert(dent > 0.0f && dent < radius);
+    float dent = 0.2f * radius;
 
+    // first, hard coded vertex positions and colors of one sample
     float r0 = SAMPLE_COLOR_0.r;
     float g0 = SAMPLE_COLOR_0.g;
     float b0 = SAMPLE_COLOR_0.b;
@@ -129,19 +99,32 @@ vertex_array_ids create_sample_3d(float size, float radius, float dent) {
     float gi = i_factor*g1 + (1.0f-i_factor)*g0;
     float bi = i_factor*b1 + (1.0f-i_factor)*b0;
 
-    vertex_data_t vertices = {
-        // position                        // color
-         0*size,  0*size, radius-dent,     ri, gi, bi,
-        -3*size, -3*size, radius,          r0, g0, b0,
-         0*size, -2*size, radius,          r0, g0, b0,
-         3*size, -3*size, radius,          r0, g0, b0,
-         2*size,  0*size, radius,          r0, g0, b0,
-         3*size,  3*size, radius,          r0, g0, b0,
-         0*size,  2*size, radius,          r0, g0, b0,
-        -3*size,  3*size, radius,          r0, g0, b0,
-        -2*size,  0*size, radius,          r0, g0, b0,
-            0.0,     0.0,    0.0,          r1, g1, b1,
+    std::vector<glm::vec3> positions = {
+        glm::vec3( 0*size,  0*size, radius-dent),
+        glm::vec3(-3*size, -3*size, radius),
+        glm::vec3( 0*size, -2*size, radius),
+        glm::vec3( 3*size, -3*size, radius),
+        glm::vec3( 2*size,  0*size, radius),
+        glm::vec3( 3*size,  3*size, radius),
+        glm::vec3( 0*size,  2*size, radius),
+        glm::vec3(-3*size,  3*size, radius),
+        glm::vec3(-2*size,  0*size, radius),
+        glm::vec3(0.0,     0.0,    0.0)
     };
+
+    std::vector<glm::vec3> colors = {
+        glm::vec3(ri, gi, bi),
+        glm::vec3(r0, g0, b0),
+        glm::vec3(r0, g0, b0),
+        glm::vec3(r0, g0, b0),
+        glm::vec3(r0, g0, b0),
+        glm::vec3(r0, g0, b0),
+        glm::vec3(r0, g0, b0),
+        glm::vec3(r0, g0, b0),
+        glm::vec3(r0, g0, b0),
+        glm::vec3(r1, g1, b1)
+    };
+
     element_data_t elements = {
         0, 1, 2,
         0, 2, 3,
@@ -161,6 +144,10 @@ vertex_array_ids create_sample_3d(float size, float radius, float dent) {
         9, 8, 7,
         9, 1, 8,
     };
+
+    // second, generate vertex and element data for all samples
+    vertex_data_t vertices = globe_vertices(positions, colors, model_matrices);
+    elements = expand_elements(elements, model_matrices.size(), positions.size());
 
     return create_vertex_array(vertices, elements);
 }
@@ -183,24 +170,15 @@ Globe::Globe(unsigned n_samples_equator, float radius) : m_n_samples_equator(n_s
     assert(radius > 0.0f);
     float size = 0.71*radius / n_samples_equator; // deduced from testing
     m_n_rings = 0.185*radius / size; // deduced from testing
-    m_vai = create_sample_3d(size, radius, 0.2f*radius);
 
-    std::cout << "globe created" << std::endl;
-}
-
-Globe::~Globe() {
-    destroy_vertex_array(m_vai);
-}
-
-void Globe::draw(const Shader& shader, const Camera& camera) const {
-    glm::mat4 proj_view = camera.get_proj_matrix() * camera.get_view_matrix();
-    glm::mat4 eighth_roll = glm::rotate(glm::mat4(1.0f), glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    shader.Bind();
-
+    // compute one model matrix per sample
+    std::vector<glm::mat4> model_matrices;
+    glm::mat4 init_roll = glm::rotate(glm::mat4(1.0f), float(M_PI/4), Z_AXIS);
     for (unsigned i_ring = 0; i_ring <= m_n_rings; i_ring++) {
-        float angle_y = 0.5f*M_PI * i_ring / m_n_rings;
+        float angle_y = M_PI/2 * i_ring / m_n_rings;
         // samples per ring decreases non-linearly depending on ring's radius
-        unsigned n_samples = ceil(m_n_samples_equator * std::abs(sin(angle_y + 0.5f*M_PI)));
+        float ring_factor = std::abs(sin(angle_y + M_PI/2));
+        unsigned n_samples = ceil(m_n_samples_equator * ring_factor);
         for (unsigned i_sample = 0; i_sample < n_samples; i_sample++) {
             float angle_x = 2.0f*M_PI * i_sample / n_samples;
 
@@ -209,20 +187,28 @@ void Globe::draw(const Shader& shader, const Camera& camera) const {
 
             // equator and northern hemisphere
             glm::mat4 model = glm::mat4(1.0f);
-            model = glm::rotate(model, angle_x, glm::vec3(0.0f, 1.0f, 0.0f));
-            model = glm::rotate(model, angle_y, glm::vec3(-1.0f, 0.0f, 0.0f));
-            glm::mat4 matrix = proj_view * model * eighth_roll;
-
-            shader.UniformMat4("u_matrix", matrix);
-            draw_vertex_array(m_vai);
+            model = glm::rotate(model, angle_x, Y_AXIS);
+            model = glm::rotate(model, angle_y, -X_AXIS);
+            // add rotation here to keep positions declaration simpler
+            model_matrices.push_back(model * init_roll);
 
             // southern hemisphere
             if (i_ring > 0) { // skips the equator to avoid sampling it twice
-                model = glm::rotate(model, -2*angle_y, glm::vec3(-1.0f, 0.0f, 0.0f));
-                matrix = proj_view * model * eighth_roll;
-                shader.UniformMat4("u_matrix", matrix);
-                draw_vertex_array(m_vai);
+                model = glm::rotate(model, -2*angle_y, -X_AXIS);
+                model_matrices.push_back(model * init_roll);
             }
         }
     }
+
+    m_vai = create_globe(size, radius, model_matrices);
+
+    std::cout << "globe created" << std::endl;
+}
+
+Globe::~Globe() {
+    destroy_vertex_array(m_vai);
+}
+
+void Globe::draw() const {
+    draw_vertex_array(m_vai);
 }
