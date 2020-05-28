@@ -168,8 +168,12 @@ void destroy_vertex_array(vertex_array_ids vai) {
 }
 
 glm::mat4 offset_from_elevation(float elevation) {
-    //TODO
-    return glm::mat4(1.0f);
+    glm::mat4 offset(1.0f);
+
+    float scale = 1.1f+0.1f*elevation; //TODO
+    offset = glm::scale(offset, glm::vec3(1.0f, 1.0f, scale));
+
+    return offset;
 }
 
 // class implementation  - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ +
@@ -195,7 +199,7 @@ Globe::Globe(unsigned n_samples_equator, float radius) : m_n_samples_equator(n_s
             float latitude_north = angle_y;
             float latitude_south = -angle_y;
             float longitude = (angle_x < M_PI)? angle_x : -2.0f*M_PI + angle_x;
-            float size = 0.5f * M_PI/2 * 1 / m_n_rings; // half of a y-step
+            float size = M_PI/2 * 1 / m_n_rings; // one angle_y step
 
             // equator and northern hemisphere
             float elevation = sampler.at(latitude_north, longitude, size);
