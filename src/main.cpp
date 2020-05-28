@@ -80,8 +80,8 @@ int main() {
         PROFILE(g_window.Update());
         /* std::this_thread::sleep_for(std::chrono::milliseconds(6)); //TODO rm */
 
-        PROFILER_PRINT;
-        std::cout << string_from_seconds(engine.delta) << ' ' << round(1/engine.delta)  << " fps" << std::endl;
+        //PROFILER_PRINT;
+        //std::cout << string_from_seconds(engine.delta) << ' ' << round(1/engine.delta)  << " fps" << std::endl;
     }
 
     return 0;

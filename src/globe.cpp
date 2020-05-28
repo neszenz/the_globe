@@ -6,7 +6,10 @@
 #include <iostream>
 #include <vector>
 
+#include "elevation_sampler.hpp"
 #include "gl_utils.h"
+
+#define ELEVATION_MAPS_DIRECTORY "res/maps/"
 
 #define SAMPLE_COLOR_0 glm::vec3(0.9f, 0.9f, 0.9f)
 #define SAMPLE_COLOR_1 glm::vec3(1.1f, 0.1f, 1.1f)
@@ -164,6 +167,11 @@ void destroy_vertex_array(vertex_array_ids vai) {
     GL(glDeleteVertexArrays(1, &vai.vao));
 }
 
+glm::mat4 offset_from_elevation(float elevation) {
+    //TODO
+    return glm::mat4(1.0f);
+}
+
 // class implementation  - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ +
 Globe::Globe(unsigned n_samples_equator, float radius) : m_n_samples_equator(n_samples_equator) {
     assert(n_samples_equator >= 4);
@@ -172,6 +180,7 @@ Globe::Globe(unsigned n_samples_equator, float radius) : m_n_samples_equator(n_s
     m_n_rings = 0.185*radius / size; // deduced from testing
 
     // compute one model matrix per sample
+    Elevation_Sampler sampler(ELEVATION_MAPS_DIRECTORY);
     std::vector<glm::mat4> model_matrices;
     glm::mat4 init_roll = glm::rotate(glm::mat4(1.0f), float(M_PI/4), Z_AXIS);
     for (unsigned i_ring = 0; i_ring <= m_n_rings; i_ring++) {
@@ -182,20 +191,26 @@ Globe::Globe(unsigned n_samples_equator, float radius) : m_n_samples_equator(n_s
         for (unsigned i_sample = 0; i_sample < n_samples; i_sample++) {
             float angle_x = 2.0f*M_PI * i_sample / n_samples;
 
-            //float latitude = angle_y;
-            //float longitude = (angle_x < M_PI)? angle_x : -2.0f*M_PI + angle_x;
+            // elevation data
+            float latitude_north = angle_y;
+            float latitude_south = -angle_y;
+            float longitude = (angle_x < M_PI)? angle_x : -2.0f*M_PI + angle_x;
+            float size = 0.5f * M_PI/2 * 1 / m_n_rings; // half of a y-step
 
             // equator and northern hemisphere
+            float elevation = sampler.at(latitude_north, longitude, size);
+            glm::mat4 offset = offset_from_elevation(elevation);
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::rotate(model, angle_x, Y_AXIS);
             model = glm::rotate(model, angle_y, -X_AXIS);
-            // add rotation here to keep positions declaration simpler
-            model_matrices.push_back(model * init_roll);
+            model_matrices.push_back(model * offset * init_roll);
 
             // southern hemisphere
             if (i_ring > 0) { // skips the equator to avoid sampling it twice
+                elevation = sampler.at(latitude_south, longitude, size);
+                offset = offset_from_elevation(elevation);
                 model = glm::rotate(model, -2*angle_y, -X_AXIS);
-                model_matrices.push_back(model * init_roll);
+                model_matrices.push_back(model * offset * init_roll);
             }
         }
     }
