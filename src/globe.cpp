@@ -170,7 +170,7 @@ void destroy_vertex_array(vertex_array_ids vai) {
 glm::mat4 offset_from_elevation(float elevation) {
     glm::mat4 offset(1.0f);
 
-    float scale = 1.1f+0.1f*elevation; //TODO
+    float scale = 1.1f+0.1f*elevation; // assuming elevation >= -1.0
     offset = glm::scale(offset, glm::vec3(1.0f, 1.0f, scale));
 
     return offset;

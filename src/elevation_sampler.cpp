@@ -77,9 +77,19 @@ std::string name_from_ids(int i_row, int i_col) {
     return name;
 }
 
-int elevation_from_rgb(unsigned r, unsigned g, unsigned b) {
-    //TODO
-    return 0;
+int elevation_from_rgb(float r, float g, float b) {
+    float elevation = 0.0f;
+
+    float corridor = 0.1f;
+    if (r > 0.5f-corridor && r < 0.5f+corridor &&
+            g > 0.5f-corridor && g < 0.5f+corridor &&
+            b > 0.5f-corridor && b < 0.5f+corridor) {
+        elevation = 2.0f;
+    } else {
+        elevation = r - r*g/2 - b + b*g/2;
+    }
+
+    return elevation;
 }
 
 float factor_from_elevation(int elevation) {
@@ -92,12 +102,24 @@ float factor_from_elevation(int elevation) {
     }
 }
 
+unsigned x_from_longitude(float longitude) {
+    longitude = std::min(float(M_PI), std::max(float(-M_PI), longitude));
+    unsigned x = SAMPLE_COUNT_X * (longitude + M_PI) / (2*M_PI);
+    return std::min(unsigned(SAMPLE_COUNT_X-1), x);
+}
+
+unsigned y_from_latitude(float latitude) {
+    latitude = std::min(float(M_PI/2), std::max(float(-M_PI/2), latitude));
+    unsigned y = SAMPLE_COUNT_Y * (1.0f - (latitude + M_PI/2) / M_PI);
+    return std::min(unsigned(SAMPLE_COUNT_Y-1), y);
+}
+
 // class implementation  - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ +
 Elevation_Sampler::Elevation_Sampler(const std::string& directory) {
     // preallocate sample grid
     m_samples = sample_rows_t(SAMPLE_COUNT_Y);
     for (sample_row_t& row : m_samples) {
-        row = sample_row_t(SAMPLE_COUNT_X, glm::vec3(0.0f));
+        row = sample_row_t(SAMPLE_COUNT_X, 0.0f);
     }
 
     for (int i_image = 0; i_image < N_IMAGES; ++i_image) {
@@ -124,8 +146,33 @@ Elevation_Sampler::Elevation_Sampler(const std::string& directory) {
 }
 
 float Elevation_Sampler::at(float latitude, float longitude, float size) {
-    //TODO
-    return -this->sample_from_coords(latitude, longitude).b;
+    // compute square around coordinate
+    unsigned x_min = x_from_longitude(longitude - size/2);
+    unsigned x_max = x_from_longitude(longitude + size/2);
+    if (x_min > x_max) {
+        float tmp = x_min;
+        x_min = x_max;
+        x_max = tmp;
+    }
+    unsigned y_min = y_from_latitude(latitude - size/2);
+    unsigned y_max = y_from_latitude(latitude + size/2);
+    if (y_min > y_max) {
+        float tmp = y_min;
+        y_min = y_max;
+        y_max = tmp;
+    }
+
+    // average over samples in square
+    float elevation = 0.0f;
+    unsigned counter = 0;
+    for (unsigned y = y_min; y <= y_max; ++y) {
+        for (unsigned x = x_min; x <= x_max; ++x) {
+            elevation += m_samples.at(y).at(x);
+            counter++;
+        }
+    }
+
+    return elevation / counter;
 }
 
 void Elevation_Sampler::parse_image_data(unsigned char* data, int X, int Y, int x_offset, int y_offset) {
@@ -138,19 +185,16 @@ void Elevation_Sampler::parse_image_data(unsigned char* data, int X, int Y, int 
         int y = i_pixel / X;
         int x = i_pixel % X;
 
-        unsigned r = data[i + R_OFFSET];
-        unsigned g = data[i + G_OFFSET];
-        unsigned b = data[i + B_OFFSET];
+        float r = float(data[i + R_OFFSET]) / 255;
+        float g = float(data[i + G_OFFSET]) / 255;
+        float b = float(data[i + B_OFFSET]) / 255;
 
-        glm::vec3 rgb(float(r)/255, float(g)/255, float(b)/255);
-        m_samples.at(y+y_offset).at(x+x_offset) = rgb;
+        m_samples.at(y+y_offset).at(x+x_offset) = elevation_from_rgb(r, g, b);
     }
 }
 
-glm::vec3 Elevation_Sampler::sample_from_coords(float latitude, float longitude) {
-    unsigned y = SAMPLE_COUNT_Y * (1.0f - (latitude + M_PI/2) / M_PI);
-    unsigned x = SAMPLE_COUNT_X * (longitude + M_PI) / (2*M_PI);
-    x = std::min(unsigned(SAMPLE_COUNT_X-1), x);
-    y = std::min(unsigned(SAMPLE_COUNT_Y-1), y);
+float Elevation_Sampler::sample_from_coords(float latitude, float longitude) {
+    unsigned x = x_from_longitude(longitude);
+    unsigned y = y_from_latitude(latitude);
     return m_samples.at(y).at(x);
 }

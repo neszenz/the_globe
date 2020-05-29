@@ -57,9 +57,11 @@ void reset_opengl_settings() {
 }
 
 void render_globe() {
-        glm::mat4 matrix = g_camera.get_proj_matrix()*g_camera.get_view_matrix();
-        g_shader.UniformMat4("u_matrix", matrix);
-        g_globe.draw();
+    glm::mat4 proj = g_camera.get_proj_matrix();
+    glm::mat4 view = g_camera.get_view_matrix();
+    glm::mat4 matrix = proj * view;
+    g_shader.UniformMat4("u_matrix", matrix);
+    g_globe.draw();
 }
 
 int main() {

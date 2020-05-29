@@ -10,19 +10,20 @@ class Elevation_Sampler {
     public:
         Elevation_Sampler(const std::string& directory);
 
-        /**
+        /** averaged elevation at specified region
+         * latitude and longitude in radians
          * size: square's side length as radian of latitude
-         * return: elevation sample factor [-1.0f, 1.0f]
+         * return: elevation sample factor [-1.0, 1.0] or 2.0
          **/
         float at(float latitude, float longitude, float size);
     private:
-        typedef std::vector<glm::vec3> sample_row_t;
+        typedef std::vector<float> sample_row_t;
         typedef std::vector<sample_row_t> sample_rows_t;
 
         sample_rows_t m_samples;
 
         void parse_image_data(unsigned char* data, int X, int Y, int x_offset, int y_offset);
-        glm::vec3 sample_from_coords(float latitude, float longitude);
+        float sample_from_coords(float latitude, float longitude);
 };
 
 #endif//ELEVATION_SAMPLER_HPP
