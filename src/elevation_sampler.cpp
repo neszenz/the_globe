@@ -77,7 +77,7 @@ std::string name_from_ids(int i_row, int i_col) {
     return name;
 }
 
-int elevation_from_rgb(float r, float g, float b) {
+float elevation_from_rgb(float r, float g, float b) {
     float elevation = 0.0f;
 
     float corridor = 0.1f;
