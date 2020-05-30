@@ -10,7 +10,8 @@
 #define PROFILE(X) PROFILER.add_profile(#X);\
                    X;\
                    PROFILER.stop_latest_profile()
-#define PROFILER_PRINT PROFILER.print_profile();
+#define PROFILER_STR PROFILER.print_to_string()
+#define PROFILER_C_STR PROFILER.print_to_string().c_str()
 
 class Profiler {
     public:
@@ -24,7 +25,7 @@ class Profiler {
         void reset();
         void add_profile(const std::string& name);
         void stop_latest_profile();
-        void print_profile();
+        std::string print_to_string();
 
     private:
         typedef std::pair<double, double> start_stop_t;

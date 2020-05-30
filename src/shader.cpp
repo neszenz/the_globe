@@ -33,7 +33,7 @@ unsigned int CreateShader(const char *name, const char *source, unsigned int typ
         throw std::runtime_error("CreateShader() error");
     }
 
-    printf("Loaded %s shader '%s'\n", type == 35633 ? "vertex" : "fragment", name);
+    //printf("Loaded %s shader '%s'\n", type == 35633 ? "vertex" : "fragment", name);
 
     return id;
 }
@@ -108,7 +108,7 @@ Shader::Shader(const char *name, const char *vertexPath, const char *fragmentPat
         m_Uniforms.insert(std::pair<const char *, unsigned int>(name, uniformLocation));
     }
 
-    printf("Loaded shader program '%s', uniforms: %d\n", m_Name.c_str(), uniformCount);
+    //printf("Loaded shader program '%s', uniforms: %d\n", m_Name.c_str(), uniformCount);
 }
 
 Shader::~Shader()

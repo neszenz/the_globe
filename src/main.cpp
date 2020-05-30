@@ -1,10 +1,15 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 #include <assert.h>
 #include <chrono>
 #include <iostream>
 #include <glm/glm.hpp>
+#include <sstream>
 #include <thread>
 
 #include "camera.hpp"
@@ -44,6 +49,20 @@ void process_orbit_momentum() {
     }
 }
 
+void setup_ImGui() {
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    //ImGuiIO& io = ImGui::getIO(); (void)io;
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(g_window.GetGlfwWindow(), true);
+    ImGui_ImplOpenGL3_Init("#version 150");
+
+    // style settings
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.GrabRounding = 0.0f;
+    style.WindowRounding = 0.0f;
+}
+
 void reset_opengl_settings() {
     GL(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
 
@@ -67,26 +86,67 @@ void render_globe() {
         g_globe.draw();
 }
 
+void process_gui() {
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGuiWindowFlags window_flags = 0;
+    window_flags |= ImGuiWindowFlags_NoMove;
+    window_flags |= ImGuiWindowFlags_NoResize;
+    window_flags |= ImGuiWindowFlags_AlwaysAutoResize;
+
+    ImGui::Begin("the_globe", NULL, window_flags);
+    if (ImGui::Button("reset camera [c]")) {
+        g_camera.reset();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("exit [q]")) {
+        g_window.SetShouldClose(true);
+    }
+    ImGui::Checkbox("low quality mode [l]", &(engine.low_quality_mode));
+    std::stringstream ss;
+    ss << int(1000*engine.delta) << " ms " << round(1/engine.delta);
+    ImGui::Text("delta time: %s fps", ss.str().c_str());
+
+    ImGui::End();
+}
+
+void render_gui() {
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void cleanup_gui() {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+}
+
 int main() {
     g_window.MakeContextCurrent();
+    setup_ImGui();
     reset_opengl_settings();
     g_shader.Bind();
+
     while (!g_window.ShouldClose()) {
         PROFILER_RESET;
 
         PROFILE(compute_delta());
+        PROFILE(process_gui());
         PROFILE(process_orbit_momentum());
         PROFILE(g_camera.set_aspect(g_window.GetAspect()));
 
         // render calls
         PROFILE(GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)));
         PROFILE(render_globe());
+        PROFILE(render_gui());
 
         PROFILE(g_window.Update());
-
-        //PROFILER_PRINT;
-        //std::cout << string_from_seconds(engine.delta) << ' ' << round(1/engine.delta)  << " fps" << std::endl;
     }
+
+    cleanup_gui();
 
     return 0;
 }

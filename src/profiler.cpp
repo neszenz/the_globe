@@ -40,13 +40,14 @@ void Profiler::stop_latest_profile() {
     m_profiles.back().second.second = glfwGetTime();
 }
 
-void Profiler::print_profile() {
+std::string Profiler::print_to_string() {
+    std::stringstream ss;
     double earliest_time = m_profiles.front().second.first;
     double latest_time = m_profiles.back().second.second;
     double total_duration = latest_time - earliest_time;
     double captured = 0.0;
 
-    std::cout << earliest_time << " sec\t\t\tinit_timestamp"<< std::endl;
+    ss << earliest_time << " sec\t\t\tinit_timestamp"<< std::endl;
     for (profile_t p : m_profiles) {
         double duration = p.second.second - p.second.first;
         captured += duration;
@@ -55,13 +56,15 @@ void Profiler::print_profile() {
         std::string time_str = string_from_seconds(duration);
         const std::string& name_str = p.first;
 
-        std::cout << ratio_str << "\t" << time_str << "\t" << name_str << std::endl;
+        ss << ratio_str << "\t" << time_str << "\t" << name_str << std::endl;
     }
     double uncaptured = total_duration - captured;
     std::string uncap_ratio_str = string_from_ratio(uncaptured, total_duration);
     std::string uncap_str = string_from_seconds(uncaptured);
-    std::cout << uncap_ratio_str << "\t" << uncap_str << "\tuncaptured" << std::endl;
+    ss << uncap_ratio_str << "\t" << uncap_str << "\tuncaptured" << std::endl;
 
     std::string time_str = string_from_seconds(total_duration);
-    std::cout << "100.0%\t" << time_str << "\ttotal capture scope" << std::endl;
+    ss << "100.0%\t" << time_str << "\ttotal capture scope" << std::endl;
+
+    return ss.str();
 }

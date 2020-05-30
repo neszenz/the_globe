@@ -17,7 +17,7 @@ struct engine_t {
 
     glm::vec3 momentum = glm::vec3(0.0f);
 
-    bool low_quality_mode = false;
+    bool low_quality_mode = true;
 
     struct mouse_t {
         bool is_down = false;

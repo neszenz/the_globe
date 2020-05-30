@@ -23,7 +23,8 @@ public:
 
     void Update();
 
-    bool ShouldClose();
+    bool ShouldClose() const;
+    void SetShouldClose(bool flag);
 
     bool IsVsync();
     void SetVsync(bool vsync);

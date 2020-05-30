@@ -111,9 +111,14 @@ void Window::Update()
     glfwPollEvents();
 }
 
-bool Window::ShouldClose()
+bool Window::ShouldClose() const
 {
     return glfwWindowShouldClose(m_Window);
+}
+
+void Window::SetShouldClose(bool flag)
+{
+    glfwSetWindowShouldClose(m_Window, (flag)? GLFW_TRUE : GLFW_FALSE);
 }
 
 bool Window::IsVsync()

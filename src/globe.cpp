@@ -236,8 +236,6 @@ Globe::Globe(unsigned n_samples_equator) {
     sample_matrices = compute_sample_matrices(sampler, n_samples_equator, n_rings);
 
     m_vai_low = create_globe(size, sample_matrices);
-
-    std::cout << "globe created" << std::endl;
 }
 
 Globe::~Globe() {
