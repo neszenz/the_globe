@@ -18,6 +18,9 @@ void glfw_key_callback(GLFWwindow* win, int key, int scode, int action, int mods
         if (key == GLFW_KEY_Q)
             glfwSetWindowShouldClose(win, GLFW_TRUE);
 
+        if (key == GLFW_KEY_L)
+            engine.low_quality_mode = (engine.low_quality_mode)? false : true;
+
         if (key == GLFW_KEY_C) {
             g_camera.reset();
         }

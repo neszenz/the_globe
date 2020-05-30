@@ -145,7 +145,7 @@ Elevation_Sampler::Elevation_Sampler(const std::string& directory) {
     std::cout << "\rprocess elevation data... 100%" << std::endl;
 }
 
-float Elevation_Sampler::at(float latitude, float longitude, float size) {
+float Elevation_Sampler::at(float latitude, float longitude, float size) const {
     // compute square around coordinate
     unsigned x_min = x_from_longitude(longitude - size/2);
     unsigned x_max = x_from_longitude(longitude + size/2);

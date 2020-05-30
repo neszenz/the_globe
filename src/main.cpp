@@ -19,7 +19,7 @@
 Window g_window("the_globe", 960, 540, true, 0);
 Camera g_camera(45.0f, g_window.GetAspect(), glm::vec3(0.0f, 0.0f, 4.0f));
 Shader g_shader("basic", "res/shaders/basic.vert", "res/shaders/basic.frag");
-Globe g_globe(100);
+Globe g_globe(1000);
 struct engine_t engine;
 
 void compute_delta() {
@@ -61,7 +61,10 @@ void render_globe() {
     glm::mat4 view = g_camera.get_view_matrix();
     glm::mat4 matrix = proj * view;
     g_shader.UniformMat4("u_matrix", matrix);
-    g_globe.draw();
+    if (engine.low_quality_mode)
+        g_globe.draw_low_quality();
+    else
+        g_globe.draw();
 }
 
 int main() {
@@ -80,7 +83,6 @@ int main() {
         PROFILE(render_globe());
 
         PROFILE(g_window.Update());
-        /* std::this_thread::sleep_for(std::chrono::milliseconds(6)); //TODO rm */
 
         //PROFILER_PRINT;
         //std::cout << string_from_seconds(engine.delta) << ' ' << round(1/engine.delta)  << " fps" << std::endl;

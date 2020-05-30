@@ -15,7 +15,7 @@ class Elevation_Sampler {
          * size: square's side length as radian of latitude
          * return: elevation sample factor [-1.0, 1.0] or 2.0
          **/
-        float at(float latitude, float longitude, float size);
+        float at(float latitude, float longitude, float size) const;
     private:
         typedef std::vector<float> sample_row_t;
         typedef std::vector<sample_row_t> sample_rows_t;

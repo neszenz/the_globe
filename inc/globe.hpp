@@ -15,14 +15,14 @@ struct vertex_array_ids {
 
 class Globe {
     public:
-        Globe(unsigned n_samples_equator, float radius = 1.0f);
+        Globe(unsigned n_samples_equator);
         ~Globe();
 
         void draw() const;
+        void draw_low_quality() const;
     private:
-        unsigned m_n_samples_equator;
-        unsigned m_n_rings;
         vertex_array_ids m_vai;
+        vertex_array_ids m_vai_low;
 };
 
 #endif//GLOBE_HPP

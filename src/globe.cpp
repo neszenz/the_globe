@@ -52,15 +52,75 @@ vertex_array_ids create_vertex_array(const vertex_data_t& vertices,
     return {vao, vbo, ebo, elements.size()};
 }
 
-// positions and colors verctor of default sample and model matrices per sample
-vertex_data_t globe_vertices(std::vector<glm::vec3> pos, std::vector<glm::vec3> col, std::vector<glm::mat4> model_matrices) {
+void draw_vertex_array(vertex_array_ids vai) {
+    GL(glBindVertexArray(vai.vao));
+    GL(glDrawElements(GL_TRIANGLES, vai.n_elements, GL_UNSIGNED_INT, (void *)0));
+    GL(glBindVertexArray(0));
+}
+
+void destroy_vertex_array(vertex_array_ids vai) {
+    GL(glDeleteBuffers(1, &vai.ebo));
+    GL(glDeleteBuffers(1, &vai.vbo));
+    GL(glDeleteVertexArrays(1, &vai.vao));
+}
+
+glm::mat4 offset_from_elevation(float elevation) {
+    glm::mat4 offset(1.0f);
+
+    float scale = 1.1f+0.1f*elevation; // assuming elevation >= -1.0
+    offset = glm::scale(offset, glm::vec3(1.0f, 1.0f, scale));
+
+    return offset;
+}
+
+std::vector<glm::mat4> compute_sample_matrices(const Elevation_Sampler& sampler, unsigned n_samples_equator, unsigned n_rings) {
+    std::vector<glm::mat4> sample_matrices;
+
+    glm::mat4 init_roll = glm::rotate(glm::mat4(1.0f), float(M_PI/4), Z_AXIS);
+    for (unsigned i_ring = 0; i_ring <= n_rings; i_ring++) {
+        float angle_y = M_PI/2 * i_ring / n_rings;
+        // samples per ring decreases non-linearly depending on ring's radius
+        float ring_factor = std::abs(sin(angle_y + M_PI/2));
+        unsigned n_samples = ceil(n_samples_equator * ring_factor);
+        for (unsigned i_sample = 0; i_sample < n_samples; i_sample++) {
+            float angle_x = 2.0f*M_PI * i_sample / n_samples;
+
+            // elevation data
+            float latitude_north = angle_y;
+            float latitude_south = -angle_y;
+            float longitude = (angle_x < M_PI)? angle_x : -2.0f*M_PI + angle_x;
+            float size = M_PI/2 * 1 / n_rings; // one angle_y step
+
+            // equator and northern hemisphere
+            float elevation = sampler.at(latitude_north, longitude, size);
+            glm::mat4 offset = offset_from_elevation(elevation);
+            glm::mat4 matrix = glm::mat4(1.0f);
+            matrix = glm::rotate(matrix, angle_x, Y_AXIS);
+            matrix = glm::rotate(matrix, angle_y, -X_AXIS);
+            sample_matrices.push_back(matrix * offset * init_roll);
+
+            // southern hemisphere
+            if (i_ring > 0) { // skips the equator to avoid sampling it twice
+                elevation = sampler.at(latitude_south, longitude, size);
+                offset = offset_from_elevation(elevation);
+                matrix = glm::rotate(matrix, -2*angle_y, -X_AXIS);
+                sample_matrices.push_back(matrix * offset * init_roll);
+            }
+        }
+    }
+
+    return sample_matrices;
+}
+
+// positions and colors verctor of default sample and matrices per sample
+vertex_data_t globe_vertices(std::vector<glm::vec3> pos, std::vector<glm::vec3> col, std::vector<glm::mat4> sample_matrices) {
     assert(pos.size() == col.size());
 
     vertex_data_t vertices;
 
-    for (const glm::mat4& model : model_matrices) {
+    for (const glm::mat4& matrix : sample_matrices) {
         for (unsigned i = 0; i < pos.size(); ++i) {
-            glm::vec4 p = model * glm::vec4(pos.at(i), 1.0f);
+            glm::vec4 p = matrix * glm::vec4(pos.at(i), 1.0f);
             vertices.push_back(p.x);
             vertices.push_back(p.y);
             vertices.push_back(p.z);
@@ -85,9 +145,9 @@ element_data_t expand_elements(const element_data_t& elem, unsigned n_samples, u
     return elements;
 }
 
-vertex_array_ids create_globe(float size, float radius, std::vector<glm::mat4> model_matrices) {
+vertex_array_ids create_globe(float size, std::vector<glm::mat4> sample_matrices) {
     assert(size > 0.0f);
-    assert(radius > 0.0f);
+    float radius = 1.0f;
     float dent = 0.2f * radius;
 
     // first, hard coded vertex positions and colors of one sample
@@ -149,85 +209,46 @@ vertex_array_ids create_globe(float size, float radius, std::vector<glm::mat4> m
     };
 
     // second, generate vertex and element data for all samples
-    vertex_data_t vertices = globe_vertices(positions, colors, model_matrices);
-    elements = expand_elements(elements, model_matrices.size(), positions.size());
+    vertex_data_t vertices = globe_vertices(positions, colors, sample_matrices);
+    elements = expand_elements(elements, sample_matrices.size(), positions.size());
 
     return create_vertex_array(vertices, elements);
 }
 
-void draw_vertex_array(vertex_array_ids vai) {
-    GL(glBindVertexArray(vai.vao));
-    GL(glDrawElements(GL_TRIANGLES, vai.n_elements, GL_UNSIGNED_INT, (void *)0));
-    GL(glBindVertexArray(0));
-}
-
-void destroy_vertex_array(vertex_array_ids vai) {
-    GL(glDeleteBuffers(1, &vai.ebo));
-    GL(glDeleteBuffers(1, &vai.vbo));
-    GL(glDeleteVertexArrays(1, &vai.vao));
-}
-
-glm::mat4 offset_from_elevation(float elevation) {
-    glm::mat4 offset(1.0f);
-
-    float scale = 1.1f+0.1f*elevation; // assuming elevation >= -1.0
-    offset = glm::scale(offset, glm::vec3(1.0f, 1.0f, scale));
-
-    return offset;
-}
-
 // class implementation  - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ - +=+ +
-Globe::Globe(unsigned n_samples_equator, float radius) : m_n_samples_equator(n_samples_equator) {
+Globe::Globe(unsigned n_samples_equator) {
     assert(n_samples_equator >= 4);
-    assert(radius > 0.0f);
-    float size = 0.71*radius / n_samples_equator; // deduced from testing
-    m_n_rings = 0.185*radius / size; // deduced from testing
+    float size = 0.71 / n_samples_equator; // deduced from testing
+    unsigned n_rings = 0.185 / size; // deduced from testing
 
-    // compute one model matrix per sample
+    // high quality globe
     Elevation_Sampler sampler(ELEVATION_MAPS_DIRECTORY);
-    std::vector<glm::mat4> model_matrices;
-    glm::mat4 init_roll = glm::rotate(glm::mat4(1.0f), float(M_PI/4), Z_AXIS);
-    for (unsigned i_ring = 0; i_ring <= m_n_rings; i_ring++) {
-        float angle_y = M_PI/2 * i_ring / m_n_rings;
-        // samples per ring decreases non-linearly depending on ring's radius
-        float ring_factor = std::abs(sin(angle_y + M_PI/2));
-        unsigned n_samples = ceil(m_n_samples_equator * ring_factor);
-        for (unsigned i_sample = 0; i_sample < n_samples; i_sample++) {
-            float angle_x = 2.0f*M_PI * i_sample / n_samples;
+    std::vector<glm::mat4> sample_matrices = compute_sample_matrices(sampler, n_samples_equator, n_rings);
 
-            // elevation data
-            float latitude_north = angle_y;
-            float latitude_south = -angle_y;
-            float longitude = (angle_x < M_PI)? angle_x : -2.0f*M_PI + angle_x;
-            float size = M_PI/2 * 1 / m_n_rings; // one angle_y step
+    m_vai = create_globe(size, sample_matrices);
 
-            // equator and northern hemisphere
-            float elevation = sampler.at(latitude_north, longitude, size);
-            glm::mat4 offset = offset_from_elevation(elevation);
-            glm::mat4 model = glm::mat4(1.0f);
-            model = glm::rotate(model, angle_x, Y_AXIS);
-            model = glm::rotate(model, angle_y, -X_AXIS);
-            model_matrices.push_back(model * offset * init_roll);
-
-            // southern hemisphere
-            if (i_ring > 0) { // skips the equator to avoid sampling it twice
-                elevation = sampler.at(latitude_south, longitude, size);
-                offset = offset_from_elevation(elevation);
-                model = glm::rotate(model, -2*angle_y, -X_AXIS);
-                model_matrices.push_back(model * offset * init_roll);
-            }
-        }
+    // low quality globe
+    if (n_samples_equator > 100) {
+        n_samples_equator = 100;
+        size = 0.71 / n_samples_equator;
+        n_rings = 0.185 / size;
     }
+    sample_matrices = compute_sample_matrices(sampler, n_samples_equator, n_rings);
 
-    m_vai = create_globe(size, radius, model_matrices);
+    m_vai_low = create_globe(size, sample_matrices);
 
     std::cout << "globe created" << std::endl;
 }
 
 Globe::~Globe() {
     destroy_vertex_array(m_vai);
+    destroy_vertex_array(m_vai_low);
 }
 
 void Globe::draw() const {
     draw_vertex_array(m_vai);
+}
+
+void Globe::draw_low_quality() const {
+    draw_vertex_array(m_vai_low);
 }

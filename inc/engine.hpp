@@ -14,7 +14,11 @@
 
 struct engine_t {
     double delta = -1.0;
+
     glm::vec3 momentum = glm::vec3(0.0f);
+
+    bool low_quality_mode = false;
+
     struct mouse_t {
         bool is_down = false;
         double xlast = 0.0;
