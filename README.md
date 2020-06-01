@@ -14,8 +14,6 @@ The source of the data are [32 JPEG squares](https://www.ngdc.noaa.gov/mgg/image
 In the source, the elevation is encoded into RGB pixel and thus needs to be decoded into a single value.
 Finally mapping the data onto the sample pattern is done by averaging over the surrounding region depending on the sample marker size and thus on the sample density.
 
----
-
 **Dependencies:**
 - CMake
 - OpenGL + GLEW + GLM
