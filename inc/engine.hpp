@@ -1,23 +1,16 @@
 #ifndef ENGINE_HPP
 #define ENGINE_HPP
 
-//#include "imgui.h"
-//#include "imgui_impl_glfw.h"
-//#include "imgui_impl_opengl3.h"
-
-//#include <GL/glew.h>
-//#include <GLFW/glfw3.h>
-
-//#include <glm/glm.hpp>
-//#include <glm/gtc/type_ptr.hpp>
-//#include <glm/gtc/matrix_transform.hpp>
+#define LOD_0 64
+#define LOD_1 256
+#define LOD_2 1024
 
 struct engine_t {
     double delta = -1.0;
 
     glm::vec3 momentum = glm::vec3(0.0f);
 
-    bool low_quality_mode = true;
+    int lod = LOD_0;
 
     struct mouse_t {
         bool is_down = false;

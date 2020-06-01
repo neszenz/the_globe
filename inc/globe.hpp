@@ -19,10 +19,8 @@ class Globe {
         ~Globe();
 
         void draw() const;
-        void draw_low_quality() const;
     private:
         vertex_array_ids m_vai;
-        vertex_array_ids m_vai_low;
 };
 
 #endif//GLOBE_HPP

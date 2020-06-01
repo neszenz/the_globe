@@ -24,7 +24,7 @@
 Window g_window("the_globe", 960, 540, true, 0);
 Camera g_camera(45.0f, g_window.GetAspect(), glm::vec3(0.0f, 0.0f, 4.0f));
 Shader g_shader("basic", "res/shaders/basic.vert", "res/shaders/basic.frag");
-Globe g_globe(1000);
+Globe g_globe_0(LOD_0), g_globe_1(LOD_1), g_globe_2(LOD_2);
 struct engine_t engine;
 
 void compute_delta() {
@@ -80,10 +80,17 @@ void render_globe() {
     glm::mat4 view = g_camera.get_view_matrix();
     glm::mat4 matrix = proj * view;
     g_shader.UniformMat4("u_matrix", matrix);
-    if (engine.low_quality_mode)
-        g_globe.draw_low_quality();
-    else
-        g_globe.draw();
+    switch (engine.lod) {
+        case LOD_0:
+            g_globe_0.draw();
+            break;
+        case LOD_1:
+            g_globe_1.draw();
+            break;
+        case LOD_2:
+            g_globe_2.draw();
+            break;
+    }
 }
 
 void process_gui() {
@@ -98,6 +105,17 @@ void process_gui() {
     window_flags |= ImGuiWindowFlags_AlwaysAutoResize;
 
     ImGui::Begin("the_globe", NULL, window_flags);
+    std::stringstream ss;
+    ss << int(1000*engine.delta) << " ms " << round(1/engine.delta);
+    ImGui::Text("delta time: %s fps", ss.str().c_str());
+
+    ImGui::NewLine();
+    ImGui::Text("level of quality [l]:");
+    ImGui::RadioButton("low", &(engine.lod), LOD_0); ImGui::SameLine();
+    ImGui::RadioButton("medium", &(engine.lod), LOD_1); ImGui::SameLine();
+    ImGui::RadioButton("high", &(engine.lod), LOD_2);
+
+    ImGui::NewLine();
     if (ImGui::Button("reset camera [c]")) {
         g_camera.reset();
     }
@@ -105,10 +123,6 @@ void process_gui() {
     if (ImGui::Button("exit [q]")) {
         g_window.SetShouldClose(true);
     }
-    ImGui::Checkbox("low quality mode [l]", &(engine.low_quality_mode));
-    std::stringstream ss;
-    ss << int(1000*engine.delta) << " ms " << round(1/engine.delta);
-    ImGui::Text("delta time: %s fps", ss.str().c_str());
 
     ImGui::End();
 }

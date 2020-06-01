@@ -221,32 +221,16 @@ Globe::Globe(unsigned n_samples_equator) {
     float size = 0.71 / n_samples_equator; // deduced from testing
     unsigned n_rings = 0.185 / size; // deduced from testing
 
-    // high quality globe
-    Elevation_Sampler sampler(ELEVATION_MAPS_DIRECTORY);
+    static Elevation_Sampler sampler(ELEVATION_MAPS_DIRECTORY);
     std::vector<glm::mat4> sample_matrices = compute_sample_matrices(sampler, n_samples_equator, n_rings);
 
     m_vai = create_globe(size, sample_matrices);
-
-    // low quality globe
-    if (n_samples_equator > 100) {
-        n_samples_equator = 100;
-        size = 0.71 / n_samples_equator;
-        n_rings = 0.185 / size;
-    }
-    sample_matrices = compute_sample_matrices(sampler, n_samples_equator, n_rings);
-
-    m_vai_low = create_globe(size, sample_matrices);
 }
 
 Globe::~Globe() {
     destroy_vertex_array(m_vai);
-    destroy_vertex_array(m_vai_low);
 }
 
 void Globe::draw() const {
     draw_vertex_array(m_vai);
-}
-
-void Globe::draw_low_quality() const {
-    draw_vertex_array(m_vai_low);
 }
