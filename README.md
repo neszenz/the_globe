@@ -14,6 +14,8 @@ The source of the data are [32 JPEG squares](https://www.ngdc.noaa.gov/mgg/image
 In the source, the elevation is encoded into RGB pixel and thus needs to be decoded into a single value.
 Finally mapping the data onto the sample pattern is done by averaging over the surrounding region depending on the sample marker size and thus on the sample density.
 
+---
+
 **Dependencies:**
 - CMake
 - OpenGL + GLEW + GLM
@@ -26,7 +28,10 @@ In part based on Hector Peeters's [opengl_premake_boilerplate](https://github.co
 - ./run make
 - ./run
 
+---
+
 **Results:**
+
 The sample pattern looking down a pole:
 ![](imgs/pattern.png "sample pattern")
 
@@ -39,8 +44,15 @@ Final result for 256 samples at equator:
 Final result for 1024 samples at equator:
 ![](imgs/result_1024.png "1024 samples at equator")
 
+---
+
 The first approach to the pattern generation was based on archimedean spirals, which was abandond in favour of the simpler grid based pattern due to aliasing issues.
-Some screenshots during development:
+
+Archimedean spirals in the plane:
 ![](imgs/dev0.png "archimedean spirals in the plane")
+
+Archimedean spirals on a sphere:
 ![](imgs/dev1.png "archimedean spirals on a sphere")
+
+Aliasing in the pattern:
 ![](imgs/dev2.png "archimedean spirals lead to aliasing artefacts in the pattern")
