@@ -1,7 +1,5 @@
 # the_globe
 
-![](imgs/title.png)
-
 This demo showcases my orbit camera approach based on [Ken Shoemake's ArcBall](https://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.457.6530).
 It is controled via mouse input and translates the rotation immediately while holding down the LMB.
 At the same time, the momentum is captured and on abruptly releasing the LMB it is translated into an animation, which smoothly exhausts over time.
@@ -16,12 +14,31 @@ The source of the data are [32 JPEG squares](https://www.ngdc.noaa.gov/mgg/image
 In the source, the elevation is encoded into RGB pixel and thus needs to be decoded into a single value.
 Finally mapping the data onto the sample pattern is done by averaging over the surrounding region depending on the sample marker size and thus on the sample density.
 
-Dependencies:
+**Results:**
+
+The sample pattern looking down a pole:
+![](imgs/pattern.png)
+
+Final result for 64 samples at equator:
+![](imgs/result_64.png)
+
+Final result for 256 samples at equator:
+![](imgs/result_256.png)
+
+Final result for 1024 samples at equator:
+![](imgs/result_1024.png)
+
+Some screenshots during development:
+![](imgs/dev0.png)
+![](imgs/dev1.png)
+![](imgs/dev2.png)
+
+**Dependencies:**
 - CMake
 - OpenGL + GLEW + GLM
 - [GLFW3](https://www.glfw.org/)
 
-Build:
+**Build:**
 - ./run cmake
 - ./run make
 - ./run
