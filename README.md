@@ -14,21 +14,19 @@ The source of the data are [32 JPEG squares](https://www.ngdc.noaa.gov/mgg/image
 In the source, the elevation is encoded into RGB pixel and thus needs to be decoded into a single value.
 Finally mapping the data onto the sample pattern is done by averaging over the surrounding region depending on the sample marker size and thus on the sample density.
 
+In part based on Hector Peeters's [opengl_premake_boilerplate](https://github.com/HectorPeeters/opengl_premake_boilerplate).
+
 **Dependencies:**
 - CMake
 - OpenGL + GLEW + GLM
 - [GLFW3](https://www.glfw.org/)
-
-In part based on Hector Peeters's [opengl_premake_boilerplate](https://github.com/HectorPeeters/opengl_premake_boilerplate).
 
 **Build:**
 - ./run cmake
 - ./run make
 - ./run
 
----
-
-**Results:**
+## Results
 
 The sample pattern looking down a pole:
 ![](imgs/pattern.png "sample pattern")
