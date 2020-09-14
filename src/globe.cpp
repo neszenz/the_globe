@@ -81,7 +81,7 @@ std::vector<glm::mat4> compute_sample_matrices(const Elevation_Sampler& sampler,
         float angle_y = M_PI/2 * i_ring / n_rings;
         // samples per ring decreases non-linearly depending on ring's radius
         float ring_factor = std::abs(sin(angle_y + M_PI/2));
-        unsigned n_samples = ceil(n_samples_equator * ring_factor);
+        unsigned n_samples = std::max(1u, unsigned(n_samples_equator * ring_factor));
         for (unsigned i_sample = 0; i_sample < n_samples; i_sample++) {
             float angle_x = 2.0f*M_PI * i_sample / n_samples;
 
@@ -148,7 +148,7 @@ element_data_t expand_elements(const element_data_t& elem, unsigned n_samples, u
 vertex_array_ids create_globe(float size, std::vector<glm::mat4> sample_matrices) {
     assert(size > 0.0f);
     float radius = 1.0f;
-    float dent = 0.2f * radius;
+    float dent = 0.05f * radius;
 
     // first, hard coded vertex positions and colors of one sample
     float r0 = SAMPLE_COLOR_0.r;
