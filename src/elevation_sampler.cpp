@@ -86,7 +86,7 @@ float elevation_from_rgb(float r, float g, float b) {
             b > 0.5f-corridor && b < 0.5f+corridor) {
         elevation = 2.0f;
     } else {
-        elevation = r - r*g/2 - b + b*g/2;
+        elevation = (g < 1.0)? r - r*g/2 - b + b*g/2 : r - b;
     }
 
     return elevation;
