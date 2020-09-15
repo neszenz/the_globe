@@ -149,18 +149,8 @@ float Elevation_Sampler::at(float latitude, float longitude, float size) const {
     // compute square around coordinate
     unsigned x_min = x_from_longitude(longitude - size/2);
     unsigned x_max = x_from_longitude(longitude + size/2);
-    if (x_min > x_max) {
-        float tmp = x_min;
-        x_min = x_max;
-        x_max = tmp;
-    }
-    unsigned y_min = y_from_latitude(latitude - size/2);
-    unsigned y_max = y_from_latitude(latitude + size/2);
-    if (y_min > y_max) {
-        float tmp = y_min;
-        y_min = y_max;
-        y_max = tmp;
-    }
+    unsigned y_min = y_from_latitude(latitude + size/2);
+    unsigned y_max = y_from_latitude(latitude - size/2);
 
     // average over samples in square
     float elevation = 0.0f;
